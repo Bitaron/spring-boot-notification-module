@@ -169,7 +169,7 @@ public class Notification {
      * Whether HTML formatting is enabled for this notification.
      */
     @Column(nullable = false)
-    private boolean htmlEnabled;
+    private Boolean htmlEnabled;
     
     /**
      * Failure reason for notification delivery failure.

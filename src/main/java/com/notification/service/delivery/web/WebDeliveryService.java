@@ -1,43 +1,77 @@
 package com.notification.service.delivery.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.notification.config.NotificationProperties.WebProperties;
-import com.notification.domain.notification.Notification;
+import com.notification.service.delivery.DeliveryException;
 import com.notification.service.delivery.DeliveryService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+
+import com.notification.config.WebSocketProperties;
+import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.Notification;
+import com.notification.web.dto.NotificationResponse;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service for delivering web notifications.
- * This service will only be instantiated if web notifications are enabled.
+ * Service for delivering notifications via WebSocket.
  */
+@Service
+@RequiredArgsConstructor
+@Slf4j
 public class WebDeliveryService implements DeliveryService {
-
-    private static final Logger logger = LoggerFactory.getLogger(WebDeliveryService.class);
     
-    private final WebProperties webProperties;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketProperties webSocketProperties;
     
-    public WebDeliveryService(WebProperties webProperties) {
-        this.webProperties = webProperties;
-        logger.info("Web delivery service initialized");
+    @Override
+    public DeliveryChannel getChannel() {
+        return DeliveryChannel.WEB;
     }
     
     @Override
-    public boolean deliver(Notification notification) {
-        if (!webProperties.isEnabled()) {
-            logger.warn("Attempted to send web notification but web channel is disabled");
-            return false;
+    public void deliver(Notification notification) throws DeliveryException {
+        try {
+            // Use safe getter methods with fallbacks
+            String userDestPrefix = getUserDestinationPrefix();
+            String recipient = notification.getRecipient();
+            String notificationTopic = getNotificationTopic();
+            
+            String destination = userDestPrefix + recipient + "/" + notificationTopic;
+            
+            // Convert to DTO for sending over the wire
+            NotificationResponse response = new NotificationResponse(notification);
+            
+            log.info("Sending WebSocket notification to {}, subject: {}", 
+                    recipient, notification.getSubject());
+            
+            messagingTemplate.convertAndSend(destination, response);
+            
+        } catch (Exception e) {
+            throw new DeliveryException("Failed to deliver WebSocket notification", e);
         }
-        
-        // Web notifications are persisted in the database and retrieved by clients,
-        // so delivery is considered successful if the notification exists in the database.
-        logger.debug("Web notification ready for recipient: {}", notification.getRecipient());
-        return true;
+    }
+    
+    private String getUserDestinationPrefix() {
+        try {
+            return webSocketProperties.getUserDestinationPrefix();
+        } catch (Exception e) {
+            log.warn("Could not access userDestinationPrefix property, using default value");
+            return "/user/";
+        }
+    }
+    
+    private String getNotificationTopic() {
+        try {
+            return webSocketProperties.getNotificationTopic();
+        } catch (Exception e) {
+            log.warn("Could not access notificationTopic property, using default value");
+            return "notifications";
+        }
     }
     
     @Override
-    public boolean isSupported(Notification notification) {
-        return webProperties.isEnabled() && notification.getChannel() != null && 
-               notification.getChannel().name().equals("WEB");
+    public boolean isSupported() {
+        return true; // WebSocket delivery is always supported if the service is available
     }
 }

@@ -54,7 +54,6 @@ public class NotificationProperties {
     @Data
     public static class ChannelProperties {
         private EmailProperties email = new EmailProperties();
-        private SmsProperties sms = new SmsProperties();
         private WebProperties web = new WebProperties();
     }
     
@@ -89,28 +88,7 @@ public class NotificationProperties {
          */
         private boolean htmlEnabledByDefault = true;
     }
-    
-    /**
-     * Properties for SMS notifications.
-     */
-    @Data
-    public static class SmsProperties {
-        /**
-         * Whether SMS notifications are enabled.
-         * When set to true, an SmsDeliveryProvider bean must be provided.
-         */
-        private boolean enabled = false;
-        
-        /**
-         * Maximum length for SMS messages.
-         */
-        private int maxLength = 160;
-        
-        /**
-         * Whether to split long messages.
-         */
-        private boolean splitLongMessages = true;
-    }
+
     
     /**
      * Properties for web notifications.

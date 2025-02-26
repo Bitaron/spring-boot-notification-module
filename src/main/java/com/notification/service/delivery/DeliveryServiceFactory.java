@@ -18,21 +18,21 @@ import com.notification.domain.notification.Notification;
  */
 @Component
 public class DeliveryServiceFactory {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(DeliveryServiceFactory.class);
-    
+
     private final List<DeliveryService> deliveryServices = new ArrayList<>();
     private final NotificationProperties properties;
-    
+
     public DeliveryServiceFactory(NotificationProperties properties) {
         this.properties = properties;
         logger.info("DeliveryServiceFactory initialized with properties: {}", properties);
     }
-    
+
     /**
      * Register a delivery service.
      * This will be called by Spring for each DeliveryService bean that is available.
-     * 
+     *
      * @param deliveryService The delivery service to register
      */
     @Autowired(required = false)
@@ -40,7 +40,7 @@ public class DeliveryServiceFactory {
         deliveryServices.add(deliveryService);
         logger.info("Registered delivery service: {}", deliveryService.getClass().getSimpleName());
     }
-    
+
     /**
      * Gets the delivery service for a specific notification.
      *
@@ -52,16 +52,16 @@ public class DeliveryServiceFactory {
         if (notification.getChannel() == null) {
             throw new IllegalArgumentException("Notification channel cannot be null");
         }
-        
+
         Optional<DeliveryService> service = deliveryServices.stream()
-                .filter(s -> s.isSupported(notification))
+                .filter(s -> s.isSupported() && s.getChannel() == notification.getChannel())
                 .findFirst();
-        
+
         if (service.isEmpty()) {
-            throw new IllegalArgumentException("No delivery service found for channel: " + notification.getChannel() + 
+            throw new IllegalArgumentException("No delivery service found for channel: " + notification.getChannel() +
                     ". Make sure the channel is enabled in configuration and a provider is implemented.");
         }
-        
+
         return service.get();
     }
 }

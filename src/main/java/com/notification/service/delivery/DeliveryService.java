@@ -1,5 +1,6 @@
 package com.notification.service.delivery;
 
+import com.notification.domain.notification.DeliveryChannel;
 import com.notification.domain.notification.Notification;
 
 /**
@@ -8,18 +9,19 @@ import com.notification.domain.notification.Notification;
 public interface DeliveryService {
     
     /**
-     * Checks if this delivery service can deliver the given notification.
-     * 
-     * @param notification The notification to check
-     * @return true if this service can deliver the notification, false otherwise
+     * Checks if this delivery service can deliver
+     *
+     * @return true if this service can deliver , false otherwise
      */
-    boolean isSupported(Notification notification);
-    
+    boolean isSupported();
+
+    DeliveryChannel getChannel();
+
     /**
      * Delivers a notification
      * 
      * @param notification The notification to deliver
      * @return true if delivery was successful, false otherwise
      */
-    boolean deliver(Notification notification);
+    void deliver(Notification notification);
 }

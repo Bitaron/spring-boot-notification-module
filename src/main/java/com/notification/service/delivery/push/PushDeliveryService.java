@@ -1,5 +1,7 @@
-package com.notification.service.delivery;
+package com.notification.service.delivery.push;
 
+import com.notification.service.delivery.DeliveryException;
+import com.notification.service.delivery.DeliveryService;
 import org.springframework.stereotype.Service;
 
 import com.notification.config.PushProperties;

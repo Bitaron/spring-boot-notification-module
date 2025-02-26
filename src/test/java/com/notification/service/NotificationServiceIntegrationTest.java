@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -15,10 +14,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.notification.domain.notification.DeliveryChannel;
 import com.notification.domain.notification.Notification;
-import com.notification.domain.notification.NotificationStatus;
 import com.notification.repository.NotificationRepository;
 import com.notification.service.delivery.DeliveryServiceFactory;
-import com.notification.service.delivery.SmsDeliveryService;
+import com.notification.service.delivery.sms.SmsDeliveryService;
 import com.notification.service.delivery.sms.SmsSender;
 
 @SpringBootTest
