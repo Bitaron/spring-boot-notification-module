@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Metrics collection for notifications.
  */
-@Component
+
 @RequiredArgsConstructor
 public class NotificationMetrics {
     

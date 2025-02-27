@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.notification.domain.notification.DeliveryChannel;
 
 @ExtendWith(MockitoExtension.class)
-class DeliveryServiceFactoryTest {
+class DeliveryServiceFactoryImplTest {
 
     @Mock
     private EmailDeliveryService emailDeliveryService;
@@ -33,7 +33,7 @@ class DeliveryServiceFactoryTest {
     @Mock
     private WebDeliveryService webDeliveryService;
     
-    private DeliveryServiceFactory deliveryServiceFactory;
+    private DeliveryServiceFactoryImpl deliveryServiceFactoryImpl;
     
     @BeforeEach
     void setup() {
@@ -56,37 +56,37 @@ class DeliveryServiceFactoryTest {
         deliveryServicesMap.put("pushDeliveryService", pushDeliveryService);
         deliveryServicesMap.put("webDeliveryService", webDeliveryService);
         
-        deliveryServiceFactory = new DeliveryServiceFactory(deliveryServicesMap);
+        deliveryServiceFactoryImpl = new DeliveryServiceFactoryImpl(deliveryServicesMap);
     }
     
     @Test
     void testGetDeliveryServiceForEmailChannel() {
-        DeliveryService service = deliveryServiceFactory.getDeliveryService(DeliveryChannel.EMAIL);
+        DeliveryService service = deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.EMAIL);
         assertEquals(emailDeliveryService, service);
     }
     
     @Test
     void testGetDeliveryServiceForSmsChannel() {
-        DeliveryService service = deliveryServiceFactory.getDeliveryService(DeliveryChannel.SMS);
+        DeliveryService service = deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.SMS);
         assertEquals(smsDeliveryService, service);
     }
     
     @Test
     void testGetDeliveryServiceForPushChannel() {
-        DeliveryService service = deliveryServiceFactory.getDeliveryService(DeliveryChannel.PUSH);
+        DeliveryService service = deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.PUSH);
         assertEquals(pushDeliveryService, service);
     }
     
     @Test
     void testGetDeliveryServiceForWebChannel() {
-        DeliveryService service = deliveryServiceFactory.getDeliveryService(DeliveryChannel.WEB);
+        DeliveryService service = deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.WEB);
         assertEquals(webDeliveryService, service);
     }
     
     @Test
     void testNoServiceFoundForChannel() {
         assertThrows(IllegalArgumentException.class, () -> {
-            deliveryServiceFactory.getDeliveryService(DeliveryChannel.MULTI);
+            deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.MULTI);
         });
     }
     
@@ -99,10 +99,10 @@ class DeliveryServiceFactoryTest {
         when(webDeliveryService.isSupported()).thenReturn(true);
         
         // Then each should be returned for its channel
-        assertEquals(emailDeliveryService, deliveryServiceFactory.getDeliveryService(DeliveryChannel.EMAIL));
-        assertEquals(smsDeliveryService, deliveryServiceFactory.getDeliveryService(DeliveryChannel.SMS));
-        assertEquals(pushDeliveryService, deliveryServiceFactory.getDeliveryService(DeliveryChannel.PUSH));
-        assertEquals(webDeliveryService, deliveryServiceFactory.getDeliveryService(DeliveryChannel.WEB));
+        assertEquals(emailDeliveryService, deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.EMAIL));
+        assertEquals(smsDeliveryService, deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.SMS));
+        assertEquals(pushDeliveryService, deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.PUSH));
+        assertEquals(webDeliveryService, deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.WEB));
     }
     
     @Test
@@ -115,7 +115,7 @@ class DeliveryServiceFactoryTest {
         
         // Then asking for SMS should throw exception
         assertThrows(DeliveryException.class, () -> {
-            deliveryServiceFactory.getDeliveryService(DeliveryChannel.SMS);
+            deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.SMS);
         });
     }
     
@@ -123,7 +123,7 @@ class DeliveryServiceFactoryTest {
     void testGetDeliveryService_unknownChannel() {
         // When using an unknown channel (shouldn't happen with enum but still test)
         assertThrows(DeliveryException.class, () -> {
-            deliveryServiceFactory.getDeliveryService(null);
+            deliveryServiceFactoryImpl.getDeliveryService(null);
         });
     }
 }

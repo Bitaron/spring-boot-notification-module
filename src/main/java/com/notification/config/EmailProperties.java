@@ -12,26 +12,28 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "notification.email")
 @Data
 public class EmailProperties {
+
+    private boolean enabled = true;
     
     /**
      * Default from address for emails.
      */
-    private String fromAddress = "notifications@example.com";
+    private String fromAddress ;
     
     /**
      * Default subject for emails when none is provided.
      */
-    private String defaultSubject = "Notification";
+    private String defaultSubject ;
     
     /**
      * SMTP host.
      */
-    private String smtpHost = "localhost";
+    private String smtpHost ;
     
     /**
      * SMTP port.
      */
-    private int smtpPort = 25;
+    private int smtpPort;
     
     /**
      * SMTP username.

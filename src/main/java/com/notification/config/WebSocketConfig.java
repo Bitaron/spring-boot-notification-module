@@ -1,5 +1,6 @@
 package com.notification.config;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -11,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * WebSocket configuration for notification delivery via web sockets.
  */
-@Configuration
+@AutoConfiguration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {

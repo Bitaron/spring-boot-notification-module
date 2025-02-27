@@ -1,15 +1,14 @@
 package com.notification.config;
 
-import com.notification.service.delivery.DeliveryServiceFactory;
 import com.notification.service.delivery.email.EmailDeliveryService;
 import com.notification.service.delivery.sms.SmsDeliveryService;
 import com.notification.service.delivery.sms.SmsSender;
 import com.notification.service.delivery.web.WebDeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -19,7 +18,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
  * This configuration will conditionally require clients to implement the necessary
  * interfaces based on which channels they've enabled.
  */
-@Configuration
+@AutoConfiguration
 @EnableConfigurationProperties(NotificationProperties.class)
 public class DeliveryChannelConfiguration {
     @Autowired
@@ -33,7 +32,7 @@ public class DeliveryChannelConfiguration {
      * If SMS is enabled but no SmsDeliveryProvider is provided, a compile-time error will occur.
      */
     @Bean
-    @ConditionalOnProperty(prefix = "notification.channels", name = "sms.enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "notification.sms", name = "enabled", havingValue = "true")
     public SmsDeliveryService smsDeliveryService(SmsSender smsDeliveryProvider,
                                                  SmsProperties properties) {
         if (!smsDeliveryProvider.isConfigured()) {
@@ -47,7 +46,7 @@ public class DeliveryChannelConfiguration {
      * If email is enabled but no EmailDeliveryProvider is provided, a compile-time error will occur.
      */
     @Bean
-    @ConditionalOnProperty(prefix = "notification.channels", name = "email.enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "notification.email", name = "enabled", havingValue = "true")
     public EmailDeliveryService emailDeliveryService(EmailProperties properties) {
         return new EmailDeliveryService(javaMailSender, properties);
     }
@@ -57,17 +56,10 @@ public class DeliveryChannelConfiguration {
      * Web notifications are always available by default and don't require any external provider.
      */
     @Bean
-    @ConditionalOnProperty(prefix = "notification.channels", name = "web.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "notification.web", name = "enabled", havingValue = "true", matchIfMissing = true)
     public WebDeliveryService webDeliveryService(WebSocketProperties properties) {
         return new WebDeliveryService(simpMessagingTemplate, properties);
     }
 
-    /**
-     * Factory that assembles all available delivery services.
-     * The factory will only include services for enabled channels.
-     */
-    @Bean
-    public DeliveryServiceFactory deliveryServiceFactory(NotificationProperties properties) {
-        return new DeliveryServiceFactory(properties);
-    }
+
 }

@@ -2,6 +2,9 @@ package com.notification.config;
 
 import java.time.Duration;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -13,7 +16,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 /**
  * Configuration for caching in the notification module.
  */
-@Configuration
+@AutoConfiguration
 @EnableCaching
 public class CacheConfig {
     
@@ -23,6 +26,7 @@ public class CacheConfig {
      * @return The cache manager
      */
     @Bean
+    @ConditionalOnMissingBean
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("templates");
         cacheManager.setCaffeine(Caffeine.newBuilder()

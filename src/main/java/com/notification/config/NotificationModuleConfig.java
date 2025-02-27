@@ -1,25 +1,43 @@
 package com.notification.config;
 
+import com.notification.repository.NotificationRepository;
+import com.notification.service.NotificationService;
+import com.notification.service.delivery.DeliveryService;
+import com.notification.service.delivery.DeliveryServiceFactoryImpl;
+import com.notification.service.delivery.web.DeliveryServiceFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.List;
 
 /**
  * Main configuration class for the notification module.
  */
-@Configuration
+@AutoConfiguration
+@EnableAsync
 @ComponentScan(basePackages = "com.notification")
-@Import({
-    CacheConfig.class,
-    FreemarkerConfig.class,
-    WebSocketConfig.class
-})
+@EntityScan(basePackages = "com.notification.domain")
+@EnableJpaRepositories(basePackages = "com.notification.repository")
 public class NotificationModuleConfig {
-    
+    @Autowired
+    NotificationRepository notificationRepository;
+
+    @Autowired
+    List<DeliveryService> deliveryServices;
+
+    @Bean
+    public NotificationService notificationService() {
+        return new NotificationService(notificationRepository, deliveryServices);
+    }
+
     /**
      * Creates a default task executor if none is provided.
      *

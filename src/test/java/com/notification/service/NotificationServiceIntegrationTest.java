@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.notification.domain.notification.DeliveryChannel;
 import com.notification.domain.notification.Notification;
 import com.notification.repository.NotificationRepository;
-import com.notification.service.delivery.DeliveryServiceFactory;
+import com.notification.service.delivery.DeliveryServiceFactoryImpl;
 import com.notification.service.delivery.sms.SmsDeliveryService;
 import com.notification.service.delivery.sms.SmsSender;
 
@@ -33,7 +33,7 @@ public class NotificationServiceIntegrationTest {
     private SmsSender smsSender;
     
     @MockBean
-    private DeliveryServiceFactory deliveryServiceFactory;
+    private DeliveryServiceFactoryImpl deliveryServiceFactoryImpl;
     
     @MockBean
     private SmsDeliveryService smsDeliveryService;
@@ -41,7 +41,7 @@ public class NotificationServiceIntegrationTest {
     @Test
     void testCreateAndSendNotification() throws Exception {
         // Given
-        when(deliveryServiceFactory.getDeliveryService(DeliveryChannel.SMS)).thenReturn(smsDeliveryService);
+        when(deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.SMS)).thenReturn(smsDeliveryService);
         doNothing().when(smsDeliveryService).deliver(any(Notification.class));
         
         Notification notification = new Notification();

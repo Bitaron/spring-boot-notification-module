@@ -13,11 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Scheduler for notification processing tasks.
  */
-@Component
-@EnableScheduling
+
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty(name = "notification.scheduler.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "notification.scheduler.enabled", havingValue = "true")
 public class NotificationScheduler {
     
     private final NotificationService notificationService;

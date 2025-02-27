@@ -12,6 +12,8 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "notification.websocket")
 @Data
 public class WebSocketProperties {
+
+    private boolean enabled = true;
     
     /**
      * WebSocket endpoint path.

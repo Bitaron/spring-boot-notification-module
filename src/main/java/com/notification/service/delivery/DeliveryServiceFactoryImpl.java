@@ -1,44 +1,30 @@
 package com.notification.service.delivery;
 
+import com.notification.domain.notification.Notification;
+import com.notification.service.delivery.web.DeliveryServiceFactory;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.notification.config.NotificationProperties;
-import com.notification.domain.notification.DeliveryChannel;
-import com.notification.domain.notification.Notification;
-
 /**
  * Factory that provides the appropriate delivery service for a notification channel.
  */
-@Component
-public class DeliveryServiceFactory {
+@Service
+public class DeliveryServiceFactoryImpl implements DeliveryServiceFactory {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeliveryServiceFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeliveryServiceFactoryImpl.class);
 
-    private final List<DeliveryService> deliveryServices = new ArrayList<>();
-    private final NotificationProperties properties;
 
-    public DeliveryServiceFactory(NotificationProperties properties) {
-        this.properties = properties;
-        logger.info("DeliveryServiceFactory initialized with properties: {}", properties);
-    }
+    public List<DeliveryService> deliveryServices;
 
-    /**
-     * Register a delivery service.
-     * This will be called by Spring for each DeliveryService bean that is available.
-     *
-     * @param deliveryService The delivery service to register
-     */
-    @Autowired(required = false)
-    public void registerDeliveryService(DeliveryService deliveryService) {
-        deliveryServices.add(deliveryService);
-        logger.info("Registered delivery service: {}", deliveryService.getClass().getSimpleName());
+    public DeliveryServiceFactoryImpl(List<DeliveryService> deliveryServices) {
+        this.deliveryServices = deliveryServices;
     }
 
     /**
@@ -48,6 +34,7 @@ public class DeliveryServiceFactory {
      * @return The appropriate delivery service
      * @throws IllegalArgumentException if no service is found for the channel
      */
+    @Override
     public DeliveryService getDeliveryService(Notification notification) {
         if (notification.getChannel() == null) {
             throw new IllegalArgumentException("Notification channel cannot be null");

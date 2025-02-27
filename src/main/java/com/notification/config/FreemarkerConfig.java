@@ -1,5 +1,8 @@
 package com.notification.config;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
@@ -7,7 +10,7 @@ import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
 /**
  * Configuration for FreeMarker template engine.
  */
-@Configuration
+@AutoConfiguration
 public class FreemarkerConfig {
     
     /**
@@ -15,7 +18,8 @@ public class FreemarkerConfig {
      *
      * @return FreeMarker configuration
      */
-    @Bean
+   /* @Bean
+    @ConditionalOnMissingBean
     public freemarker.template.Configuration freemarkerConfig() {
         FreeMarkerConfigurationFactoryBean factory = new FreeMarkerConfigurationFactoryBean();
         factory.setTemplateLoaderPath("classpath:/templates/");
@@ -31,5 +35,5 @@ public class FreemarkerConfig {
         } catch (Exception e) {
             throw new RuntimeException("Failed to configure FreeMarker", e);
         }
-    }
+    }*/
 } 

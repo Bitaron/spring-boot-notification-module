@@ -25,7 +25,7 @@ import com.notification.domain.notification.Notification;
 import com.notification.domain.notification.NotificationStatus;
 import com.notification.repository.NotificationRepository;
 import com.notification.service.delivery.DeliveryService;
-import com.notification.service.delivery.DeliveryServiceFactory;
+import com.notification.service.delivery.DeliveryServiceFactoryImpl;
 import com.notification.service.delivery.DeliveryException;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +35,7 @@ class NotificationServiceTest {
     private NotificationRepository notificationRepository;
     
     @Mock
-    private DeliveryServiceFactory deliveryServiceFactory;
+    private DeliveryServiceFactoryImpl deliveryServiceFactoryImpl;
     
     @Mock
     private DeliveryService deliveryService;
@@ -73,7 +73,7 @@ class NotificationServiceTest {
         notification.setStatus(NotificationStatus.PENDING);
         
         when(notificationRepository.findById(id)).thenReturn(Optional.of(notification));
-        when(deliveryServiceFactory.getDeliveryService(DeliveryChannel.EMAIL)).thenReturn(deliveryService);
+        when(deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.EMAIL)).thenReturn(deliveryService);
         when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
         
         // When
@@ -104,7 +104,7 @@ class NotificationServiceTest {
         notification.setStatus(NotificationStatus.PENDING);
         
         when(notificationRepository.findById(id)).thenReturn(Optional.of(notification));
-        when(deliveryServiceFactory.getDeliveryService(DeliveryChannel.EMAIL)).thenReturn(deliveryService);
+        when(deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.EMAIL)).thenReturn(deliveryService);
         doThrow(new DeliveryException("Test delivery error")).when(deliveryService).deliver(notification);
         when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
         
@@ -160,7 +160,7 @@ class NotificationServiceTest {
                 eq(NotificationStatus.PENDING), any(LocalDateTime.class)))
                 .thenReturn(Arrays.asList(notification));
         
-        when(deliveryServiceFactory.getDeliveryService(DeliveryChannel.EMAIL)).thenReturn(deliveryService);
+        when(deliveryServiceFactoryImpl.getDeliveryService(DeliveryChannel.EMAIL)).thenReturn(deliveryService);
         
         // When
         notificationService.processScheduledNotifications();

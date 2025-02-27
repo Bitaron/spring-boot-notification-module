@@ -1,38 +1,40 @@
 package com.notification.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
+import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.Notification;
+import com.notification.domain.notification.NotificationStatus;
+import com.notification.domain.notification.NotificationType;
+import com.notification.repository.NotificationRepository;
+import com.notification.service.builder.NotificationBuilder;
+import com.notification.service.delivery.DeliveryService;
+import com.notification.service.delivery.DeliveryServiceFactoryImpl;
+import com.notification.service.delivery.web.DeliveryServiceFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.notification.domain.notification.DeliveryChannel;
-import com.notification.domain.notification.Notification;
-import com.notification.domain.notification.NotificationStatus;
-import com.notification.domain.notification.NotificationType;
-import com.notification.service.builder.NotificationBuilder;
-import com.notification.repository.NotificationRepository;
-import com.notification.service.delivery.DeliveryService;
-import com.notification.service.delivery.DeliveryServiceFactory;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * Service for managing and sending notifications.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final DeliveryServiceFactory deliveryServiceFactory;
+    public final List<DeliveryService> deliveryServices;
+
+    public NotificationService(NotificationRepository notificationRepository, List<DeliveryService> deliveryServices) {
+        this.notificationRepository = notificationRepository;
+        this.deliveryServices = deliveryServices;
+        this.deliveryServiceFactory = new DeliveryServiceFactoryImpl(deliveryServices);
+    }
 
     /**
      * Creates a new notification builder.

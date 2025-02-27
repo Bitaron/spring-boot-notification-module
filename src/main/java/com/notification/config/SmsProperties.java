@@ -12,34 +12,21 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "notification.sms")
 @Data
 public class SmsProperties {
-    
+
     /**
-     * SMS provider to use.
+     * Enable sms . By default true
      */
-    private String provider = "default";
-    
-    /**
-     * API key for SMS service.
-     */
-    private String apiKey;
-    
-    /**
-     * API secret for SMS service.
-     */
-    private String apiSecret;
-    
+
+    private boolean enabled = true;
+
     /**
      * Maximum length of SMS messages.
      */
     private int maxLength = 160;
-    
+
     /**
      * Whether to split long messages into multiple SMS.
      */
     private boolean splitLongMessages = false;
-    
-    /**
-     * Default sender ID.
-     */
-    private String senderId;
+
 } 
