@@ -1,5 +1,7 @@
 package com.notification.queue;
 
+import com.notification.domain.notification.NotificationChannel;
+import com.notification.service.builder.NotificationRequest;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -18,19 +20,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ConditionalOnProperty(name = "notification.use-queue", havingValue = "true")
 public class NotificationQueueSender {
-    
+
     private final RabbitTemplate rabbitTemplate;
     private final QueueProperties queueProperties;
-    
+
     /**
      * Sends a notification to the queue for asynchronous processing.
      *
-     * @param notification The notification to send
+     * @param notificationRequest The notification to send
      */
-    public void sendNotification(Notification notification) {
-        log.info("Sending notification to queue: {}", notification.getId());
-        
-        String routingKey = queueProperties.getRoutingKey() + "." + notification.getChannel().name().toLowerCase();
-        rabbitTemplate.convertAndSend(queueProperties.getExchange(), routingKey, notification);
+    public void sendNotification(NotificationRequest notificationRequest) {
+        log.info("Sending notification to queue: {}", notificationRequest.getSender());
+
+        for (NotificationChannel channel : notificationRequest.getChannels()) {
+            String routingKey = queueProperties.getRoutingKey() + "." + channel.name().toLowerCase();
+            rabbitTemplate.convertAndSend(queueProperties.getExchange(), routingKey, notificationRequest);
+        }
     }
 } 

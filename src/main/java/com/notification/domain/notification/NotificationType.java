@@ -23,7 +23,8 @@ public enum NotificationType {
      * Marketing related notifications.
      */
     MARKETING,
-    
+
+    ALERT,
     /**
      * Transactional notifications.
      */

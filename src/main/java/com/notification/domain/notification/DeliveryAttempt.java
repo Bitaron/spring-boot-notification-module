@@ -5,11 +5,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-@Getter
 @Setter
+@Getter
 @Entity
-@Table(name = "delivery_attempts")
+@Table(name = "delivery_attempts",
+        indexes = {
+                @Index(name = "idx_delivery_notification", columnList = "notification_id"),
+                @Index(name = "idx_delivery_recipient", columnList = "recipient_id"),
+                @Index(name = "idx_delivery_attempt_time", columnList = "attempt_time"),
+                @Index(name = "idx_delivery_status", columnList = "successful"),
+                @Index(name = "idx_delivery_next_retry", columnList = "next_retry_time")
+        })
 public class DeliveryAttempt extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +25,10 @@ public class DeliveryAttempt extends BaseEntity {
 
     @Column(name = "attempt_id", nullable = false, unique = true)
     private String attemptId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_id", nullable = false)
+    private Notification notification;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipient_id", nullable = false)
@@ -32,7 +44,7 @@ public class DeliveryAttempt extends BaseEntity {
     @Column(name = "successful", nullable = false)
     private boolean successful;
 
-    @Column(name = "error_message")
+    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
     @Column(name = "error_code")
@@ -44,5 +56,14 @@ public class DeliveryAttempt extends BaseEntity {
     @Column(name = "next_retry_time")
     private LocalDateTime nextRetryTime;
 
-    // Getters and Setters
+    @Version
+    @Column(name = "version")
+    private Long version;
+
+    public DeliveryAttempt() {
+        super();
+        this.attemptId = UUID.randomUUID().toString();
+        this.attemptTime = LocalDateTime.now();
+    }
+
 }

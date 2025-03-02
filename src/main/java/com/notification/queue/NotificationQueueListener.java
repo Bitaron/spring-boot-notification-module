@@ -1,5 +1,6 @@
 package com.notification.queue;
 
+import com.notification.service.builder.NotificationRequest;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -25,17 +26,17 @@ public class NotificationQueueListener {
     /**
      * Handles notifications received from the queue.
      *
-     * @param notification The notification to process
+     * @param notificationRequest The notification to process
      */
-    @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
-    public void handleNotification(Notification notification) {
-        log.info("Received notification from queue: {}", notification.getId());
+    @RabbitListener(queues = "${notification.queue.name}")
+    public void handleNotification(NotificationRequest notificationRequest) {
+        log.info("Received notification from queue: {}", notificationRequest.getSender());
         
         try {
-            notificationService.sendNotification(notification.getId());
-            log.info("Successfully processed notification from queue: {}", notification.getId());
+            notificationService.sendNotification(notificationRequest);
+            log.info("Successfully processed notification from queue: {}", notificationRequest.getSender());
         } catch (Exception e) {
-            log.error("Error processing notification from queue: {}", notification.getId(), e);
+            log.error("Error processing notification from queue: {}",  notificationRequest.getSender(), e);
         }
     }
 } 

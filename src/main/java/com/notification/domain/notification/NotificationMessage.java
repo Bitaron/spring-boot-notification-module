@@ -38,7 +38,7 @@ public class NotificationMessage extends BaseEntity {
     )
     @MapKeyColumn(name = "data_key")
     @Column(name = "data_value")
-    private Map<String, String> templateData = new HashMap<>();
+    private Map<String, Object> templateData = new HashMap<>();
 
     // Getters and Setters
 }

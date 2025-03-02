@@ -1,342 +1,209 @@
 package com.notification.service;
 
-import com.notification.domain.notification.NotificationChannel;
-import com.notification.domain.notification.Notification;
-import com.notification.domain.notification.NotificationStatus;
-import com.notification.domain.notification.NotificationType;
+import com.notification.domain.notification.*;
+import com.notification.exception.NotificationException;
+import com.notification.queue.NotificationQueueSender;
 import com.notification.repository.NotificationRepository;
+import com.notification.service.builder.EmailMessage;
+import com.notification.service.builder.NotificationRequest;
+import com.notification.service.builder.Recipient;
+import com.notification.service.builder.RecipientMessage;
 import com.notification.service.delivery.DeliveryService;
-import com.notification.service.delivery.DeliveryServiceFactoryImpl;
 import com.notification.service.delivery.web.DeliveryServiceFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-/**
- * Service for managing and sending notifications.
- */
 @Service
-@Slf4j
 public class NotificationService {
+    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
     private final NotificationRepository notificationRepository;
     private final DeliveryServiceFactory deliveryServiceFactory;
-    public final List<DeliveryService> deliveryServices;
+    private final boolean useMessageQueue;
+    private final NotificationQueueSender notificationQueueSender;
 
-    public NotificationService(NotificationRepository notificationRepository, List<DeliveryService> deliveryServices) {
+    public NotificationService(NotificationRepository notificationRepository,
+                               DeliveryServiceFactory deliveryServiceFactory,
+                               boolean useMessageQueue, NotificationQueueSender notificationQueueSender) {
         this.notificationRepository = notificationRepository;
-        this.deliveryServices = deliveryServices;
-        this.deliveryServiceFactory = new DeliveryServiceFactoryImpl(deliveryServices);
+        this.deliveryServiceFactory = deliveryServiceFactory;
+        this.useMessageQueue = useMessageQueue;
+        this.notificationQueueSender = notificationQueueSender;
     }
 
-    /**
-     * Creates a new notification builder.
-     *
-     * @return A notification builder instance
-     */
-    public NotificationRequestBuilder createNotificationBuilder() {
-        // Implementation needed
-        throw new UnsupportedOperationException("Method not implemented");
-    }
-
-    /**
-     * Sends a notification.
-     *
-     * @param notification The notification to send
-     * @return The sent notification with updated status
-     */
     @Transactional
-    public Notification sendNotificationImmediately(Notification notification) {
-        Notification savedNotification = createNotification(notification);
-        sendNotification(savedNotification.getId());
-        return notificationRepository.findById(savedNotification.getId()).orElse(savedNotification);
+    public String sendNotification(NotificationRequest request) {
+        Notification entity = saveNotification(request);
+
+        if (useMessageQueue) {
+            notificationQueueSender.sendNotification(request);
+        } else {
+            processNotificationAsync(entity.getNotificationId());
+        }
+
+        return entity.getNotificationId();
     }
 
-    /**
-     * Sends a notification built from the provided builder.
-     *
-     * @return The sent notification with updated status
-     */
+    // Convenient methods for common notification scenarios
     @Transactional
-    public void sendNotification(UUID notificationId) {
-        Optional<Notification> notificationOpt = notificationRepository.findById(notificationId);
+    public String sendSimpleEmail(String to, String subject, String content) {
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.TRANSACTIONAL)
+                .addChannel(NotificationChannel.EMAIL)
+                .setSender("system@example.com")
+                .forRecipientWithEmail(to, subject, content, content, NotificationPriority.NORMAL)
+                .build();
 
-        if (notificationOpt.isPresent()) {
-            Notification notification = notificationOpt.get();
+        return sendNotification(request);
+    }
 
+    @Transactional
+    public String sendUrgentAlert(String to, String subject, String content) {
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.ALERT)
+                .addChannel(NotificationChannel.EMAIL)
+                .addChannel(NotificationChannel.SMS)
+                .setSender("alerts@example.com")
+                .forRecipientWithEmail(to, subject, content, content, NotificationPriority.URGENT)
+                .build();
+
+        return sendNotification(request);
+    }
+
+    @Transactional
+    public String sendBulkEmail(List<String> recipients, String subject, String content) {
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.MARKETING)
+                .addChannel(NotificationChannel.EMAIL)
+                .setSender("marketing@example.com")
+                .forGroupWithEmail(recipients, subject, content, content, NotificationPriority.LOW)
+                .build();
+
+        return sendNotification(request);
+    }
+
+    @Async
+    protected CompletableFuture<Void> processNotificationAsync(String notificationId) {
+        return CompletableFuture.runAsync(() -> {
             try {
-                // Update status to sending
-                notification.setStatus(NotificationStatus.SENDING);
-                notification = notificationRepository.save(notification);
-
-                // Get the appropriate delivery service
-                DeliveryService deliveryService = deliveryServiceFactory.getDeliveryService(notification);
-
-                // Deliver notification
-                deliveryService.deliver(notification);
-
-
-                // Update status to sent
-                notification.setStatus(NotificationStatus.SENT);
-                notification.setSentAt(LocalDateTime.now());
-                notification = notificationRepository.save(notification);
-
-                log.info("Notification sent: {}", notificationId);
-
+                processNotification(notificationId);
             } catch (Exception e) {
-                notification.setStatus(NotificationStatus.FAILED);
-                notification.setFailureReason(e.getMessage());
-                notification.setAttemptCount(notification.getAttemptCount() + 1);
-                notificationRepository.save(notification);
-
-                log.error("Error sending notification: {}", notificationId, e);
+                logger.error("Error processing notification: " + notificationId, e);
+                updateNotificationStatus(notificationId, NotificationStatus.FAILED);
             }
-        } else {
-            log.warn("Notification not found: {}", notificationId);
-        }
+        });
     }
 
-    /**
-     * Sends a template-based notification.
-     *
-     * @param recipient      The notification recipient
-     * @param templateCode   The template code to use
-     * @param templateParams The template parameters
-     * @param channel        The delivery channel
-     * @return The sent notification with updated status
-     */
     @Transactional
-    public Notification sendWithTemplate(String recipient, String templateCode,
-                                         Map<String, Object> templateParams, NotificationChannel channel) {
-        // Implementation needed
-        throw new UnsupportedOperationException("Method not implemented");
-    }
+    protected void processNotification(String notificationId) {
+        Notification notification = notificationRepository.findByNotificationId(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
 
-    /**
-     * Creates a notification but doesn't send it immediately.
-     *
-     * @param notification The notification to create
-     * @return The created notification
-     */
-    public Notification createNotification(Notification notification) {
-        notification.setCreatedAt(LocalDateTime.now());
-        notification.setStatus(NotificationStatus.PENDING);
-        return notificationRepository.save(notification);
-    }
+        updateNotificationStatus(notificationId, NotificationStatus.PROCESSING);
 
-    /**
-     * Gets a notification by its ID.
-     *
-     * @param id The notification ID
-     * @return The notification, if found
-     */
-    @Transactional(readOnly = true)
-    public Optional<Notification> getNotification(UUID id) {
-        return notificationRepository.findById(id);
-    }
-
-    /**
-     * Updates the status of a notification.
-     *
-     * @param id     The notification ID
-     * @param status The new status
-     * @return The updated notification
-     */
-    @Transactional
-    public Notification updateStatus(UUID id, NotificationStatus status) {
-        Optional<Notification> notificationOpt = notificationRepository.findById(id);
-
-        if (notificationOpt.isPresent()) {
-            Notification notification = notificationOpt.get();
-            notification.setStatus(status);
-            notification.setUpdatedAt(LocalDateTime.now());
-            return notificationRepository.save(notification);
-        } else {
-            throw new IllegalArgumentException("Notification not found");
-        }
-    }
-
-    /**
-     * Marks a notification as read.
-     *
-     * @param id The notification ID
-     * @return The updated notification
-     */
-    @Transactional
-    public Notification markAsRead(UUID id) {
-        Optional<Notification> notificationOpt = notificationRepository.findById(id);
-
-        if (notificationOpt.isPresent()) {
-            Notification notification = notificationOpt.get();
-            notification.setStatus(NotificationStatus.READ);
-            notification.setReadAt(LocalDateTime.now());
-            notification.setUpdatedAt(LocalDateTime.now());
-            return notificationRepository.save(notification);
-        } else {
-            throw new IllegalArgumentException("Notification not found");
-        }
-    }
-
-    /**
-     * Cancels a scheduled notification.
-     *
-     * @param id The notification ID
-     * @return The updated notification
-     */
-    @Transactional
-    public Notification cancelNotification(UUID id) {
-        Optional<Notification> notificationOpt = notificationRepository.findById(id);
-
-        if (notificationOpt.isPresent()) {
-            Notification notification = notificationOpt.get();
-
-            // Only pending or scheduled notifications can be canceled
-            if (notification.getStatus() == NotificationStatus.PENDING ||
-                    notification.getStatus() == NotificationStatus.SCHEDULED) {
-
-                notification.setStatus(NotificationStatus.CANCELLED);
-                notification.setUpdatedAt(LocalDateTime.now());
-                return notificationRepository.save(notification);
-            } else {
-                throw new IllegalStateException("Cannot cancel notification with status: " + notification.getStatus());
+        for (NotificationChannel channel : notification.getChannels()) {
+            for (NotificationRecipient recipient : notification.getRecipients()) {
+                try {
+                    sendByChannel(channel, notification, recipient);
+                } catch (Exception e) {
+                    logger.error("Error sending notification to recipient: " + recipient.getRecipientId(), e);
+                    recordDeliveryAttempt(notification, recipient, channel, false, e.getMessage());
+                }
             }
+        }
+
+        updateNotificationStatus(notificationId, NotificationStatus.DELIVERED);
+    }
+
+    private void sendByChannel(NotificationChannel channel,
+                               Notification notification,
+                               NotificationRecipient recipient) {
+        try {
+            DeliveryService deliveryService = deliveryServiceFactory.getDeliveryService(notification);
+            recordDeliveryAttempt(notification, recipient, channel, true, null);
+        } catch (Exception e) {
+            throw new NotificationException("Failed to send notification via " + channel, e);
+        }
+    }
+
+    private Notification saveNotification(NotificationRequest request) {
+        Notification entity = new Notification();
+        entity.setNotificationId(UUID.randomUUID().toString());
+        entity.setType(request.getType());
+        entity.setChannels(request.getChannels());
+        entity.setSender(request.getSender());
+        entity.setScheduledTime(request.getScheduledTime());
+        entity.setStatus(request.getScheduledTime() != null ?
+                NotificationStatus.SCHEDULED : NotificationStatus.PENDING);
+        entity.setPriority(request.getPriority());
+
+        // Set creation details
+        entity.setCreatedAt(LocalDateTime.parse("2025-03-02T09:43:30"));
+        entity.setCreatedBy("Bitaron");
+
+        // Save recipients
+        for (Recipient recipient : request.getRecipients()) {
+            NotificationRecipient recipientEntity = new NotificationRecipient();
+            recipientEntity.setRecipientId(recipient.getRecipientId());
+            recipientEntity.setNotification(entity);
+
+            // Save message
+            if (recipient.getMessage() != null) {
+                NotificationMessage messageEntity = createMessageEntity(recipient.getMessage());
+                recipientEntity.setMessage(messageEntity);
+            }
+
+            entity.getRecipients().add(recipientEntity);
+        }
+
+        return notificationRepository.save(entity);
+    }
+
+    private NotificationMessage createMessageEntity(RecipientMessage message) {
+        NotificationMessage entity = new NotificationMessage();
+
+        if (message.isTemplate()) {
+            entity.setTemplateName(message.getTemplateName());
+            entity.setTemplateData(new HashMap<>(message.getTemplateData()));
+        } else if (message.isEmail()) {
+            EmailMessage emailMessage = message.getEmailMessage();
+            entity.setSubject(emailMessage.getSubject());
+            entity.setHtmlContent(emailMessage.getHtmlContent());
+            entity.setPlainTextContent(emailMessage.getPlainTextContent());
         } else {
-            throw new IllegalArgumentException("Notification not found");
+            entity.setRawMessage(message.getRawMessage());
         }
+
+        return entity;
     }
 
-    /**
-     * Gets notifications for a recipient.
-     *
-     * @param recipient The recipient identifier
-     * @param pageable  Pagination information
-     * @return Page of notifications
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsForRecipient(String recipient, Pageable pageable) {
-        return notificationRepository.findByRecipient(recipient, pageable);
+    private void recordDeliveryAttempt(Notification notification,
+                                       NotificationRecipient recipient,
+                                       NotificationChannel channel,
+                                       boolean successful,
+                                       String errorMessage) {
+        DeliveryAttempt attempt = new DeliveryAttempt();
+        attempt.setNotification(notification);
+        attempt.setRecipient(recipient);
+        attempt.setChannel(channel);
+        attempt.setSuccessful(successful);
+        attempt.setErrorMessage(errorMessage);
+
+        recipient.getDeliveryAttempts().add(attempt);
     }
 
-    /**
-     * Gets notifications by status.
-     *
-     * @param status   The notification status
-     * @param pageable Pagination information
-     * @return Page of notifications
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsByStatus(NotificationStatus status, Pageable pageable) {
-        return notificationRepository.findByStatus(status, pageable);
-    }
-
-    /**
-     * Gets notifications by type.
-     *
-     * @param type     The notification type
-     * @param pageable Pagination information
-     * @return Page of notifications
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsByType(NotificationType type, Pageable pageable) {
-        return notificationRepository.findByType(type, pageable);
-    }
-
-    /**
-     * Gets notifications by channel.
-     *
-     * @param channel  The delivery channel
-     * @param pageable Pagination information
-     * @return Page of notifications
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsByChannel(NotificationChannel channel, Pageable pageable) {
-        return notificationRepository.findByChannel(channel, pageable);
-    }
-
-    /**
-     * Gets notifications in a group.
-     *
-     * @param groupId  The group identifier
-     * @param pageable Pagination information
-     * @return Page of notifications
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsByGroup(String groupId, Pageable pageable) {
-        return notificationRepository.findByGroupId(groupId, pageable);
-    }
-
-    /**
-     * Searches notifications.
-     *
-     * @param searchTerm The search term
-     * @param pageable   Pagination information
-     * @return Page of matching notifications
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> searchNotifications(String searchTerm, Pageable pageable) {
-        return notificationRepository.search(searchTerm, pageable);
-    }
-
-    /**
-     * Processes scheduled notifications.
-     */
     @Transactional
-    public void processScheduledNotifications() {
-        List<Notification> scheduledNotifications = notificationRepository
-                .findByStatusAndScheduledForBefore(NotificationStatus.PENDING, LocalDateTime.now());
-
-        log.info("Processing {} scheduled notifications", scheduledNotifications.size());
-
-        for (Notification notification : scheduledNotifications) {
-            sendNotification(notification.getId());
-        }
-    }
-
-    /**
-     * Processes notifications that need retry.
-     */
-    @Transactional
-    public void processRetryNotifications() {
-        // Implementation needed
-        throw new UnsupportedOperationException("Method not implemented");
-    }
-
-    /**
-     * Sends a group of notifications.
-     *
-     * @param notifications The list of notifications to send
-     * @return The list of sent notifications with updated status
-     */
-    @Transactional
-    public List<Notification> sendBatch(List<Notification> notifications) {
-        // Implementation needed
-        throw new UnsupportedOperationException("Method not implemented");
-    }
-
-    /**
-     * Get notifications by recipient
-     *
-     * @param recipient The recipient to filter by
-     * @param pageable  Pagination information
-     * @return Page of notifications for the recipient
-     */
-    @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsByRecipient(String recipient, Pageable pageable) {
-        return notificationRepository.findByRecipient(recipient, pageable);
-    }
-
-    /**
-     * Delete a notification
-     *
-     * @param id The notification ID to delete
-     */
-    @Transactional
-    public void deleteNotification(UUID id) {
-        notificationRepository.deleteById(id);
+    protected void updateNotificationStatus(String notificationId, NotificationStatus status) {
+        notificationRepository.updateStatus(notificationId, status,
+                LocalDateTime.parse("2025-03-02T09:43:30"), "Bitaron");
     }
 }

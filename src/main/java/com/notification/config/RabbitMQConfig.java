@@ -7,6 +7,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +18,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(name = "notification.use-queue", havingValue = "true")
 public class RabbitMQConfig {
-    
-    public static final String EXCHANGE_NAME = "notification-exchange";
-    public static final String QUEUE_NAME = "notification-queue";
-    public static final String ROUTING_KEY = "notification.#";
-    
+    @Autowired
+    QueueProperties queueProperties;
+
     /**
      * Creates the notification queue.
      *
@@ -29,9 +28,9 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue notificationQueue() {
-        return new Queue(QUEUE_NAME, true);
+        return new Queue(queueProperties.getQueueName(), true);
     }
-    
+
     /**
      * Creates the notification exchange.
      *
@@ -39,21 +38,21 @@ public class RabbitMQConfig {
      */
     @Bean
     public TopicExchange notificationExchange() {
-        return new TopicExchange(EXCHANGE_NAME);
+        return new TopicExchange(queueProperties.getExchange());
     }
-    
+
     /**
      * Binds the queue to the exchange.
      *
-     * @param queue The queue
+     * @param queue    The queue
      * @param exchange The exchange
      * @return The binding
      */
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+        return BindingBuilder.bind(queue).to(exchange).with(queueProperties.getRoutingKey());
     }
-    
+
     /**
      * Configures the RabbitTemplate with JSON message conversion.
      *
