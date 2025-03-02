@@ -5,7 +5,7 @@ import com.notification.service.delivery.DeliveryService;
 import org.springframework.stereotype.Service;
 
 import com.notification.config.PushProperties;
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,8 @@ public class PushDeliveryService implements DeliveryService {
     private final PushProperties pushProperties;
     
     @Override
-    public DeliveryChannel getChannel() {
-        return DeliveryChannel.PUSH;
+    public NotificationChannel getChannel() {
+        return NotificationChannel.PUSH;
     }
     
     @Override

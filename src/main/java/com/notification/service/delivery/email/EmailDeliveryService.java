@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.notification.config.EmailProperties;
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 
 import jakarta.mail.internet.MimeMessage;
@@ -29,8 +29,8 @@ public class EmailDeliveryService implements DeliveryService {
 
 
     @Override
-    public DeliveryChannel getChannel() {
-        return DeliveryChannel.EMAIL;
+    public NotificationChannel getChannel() {
+        return NotificationChannel.EMAIL;
     }
 
     @Override

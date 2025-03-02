@@ -2,9 +2,7 @@ package com.notification.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.stereotype.Component;
-
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.NotificationStatus;
 
 import io.micrometer.core.instrument.Counter;
@@ -44,7 +42,7 @@ public class NotificationMetrics {
      *
      * @param channel The delivery channel
      */
-    public void recordNotificationAttempt(DeliveryChannel channel) {
+    public void recordNotificationAttempt(NotificationChannel channel) {
         totalNotifications.incrementAndGet();
         
         switch (channel) {
@@ -85,7 +83,7 @@ public class NotificationMetrics {
      * @param channel The delivery channel
      * @return The timer
      */
-    public Timer getTimerForChannel(DeliveryChannel channel) {
+    public Timer getTimerForChannel(NotificationChannel channel) {
         switch (channel) {
             case EMAIL:
                 return emailTimer;

@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.NotificationPriority;
 import com.notification.domain.notification.NotificationType;
 
@@ -28,7 +28,7 @@ public @interface Notify {
      * 
      * @return The delivery channel
      */
-    DeliveryChannel channel();
+    NotificationChannel channel();
     
     /**
      * The notification type.

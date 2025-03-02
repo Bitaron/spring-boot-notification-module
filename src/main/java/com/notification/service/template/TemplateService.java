@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.template.Template;
 
 /**
@@ -52,7 +52,7 @@ public interface TemplateService {
      * @param channel The delivery channel
      * @return List of templates for the specified channel
      */
-    List<Template> getTemplatesByChannel(DeliveryChannel channel);
+    List<Template> getTemplatesByChannel(NotificationChannel channel);
     
     /**
      * Retrieves templates by locale.

@@ -5,7 +5,7 @@ import com.notification.service.delivery.DeliveryService;
 import org.springframework.stereotype.Service;
 
 import com.notification.config.SmsProperties;
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 
 import lombok.RequiredArgsConstructor;
@@ -25,8 +25,8 @@ public class SmsDeliveryService implements DeliveryService {
     private final SmsProperties smsProperties;
     
     @Override
-    public DeliveryChannel getChannel() {
-        return DeliveryChannel.SMS;
+    public NotificationChannel getChannel() {
+        return NotificationChannel.SMS;
     }
     
     @Override

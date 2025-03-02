@@ -1,143 +1,271 @@
 package com.notification.service.builder;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-
-import com.notification.domain.notification.DeliveryChannel;
-import com.notification.domain.notification.Notification;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.NotificationPriority;
 import com.notification.domain.notification.NotificationType;
 
-/**
- * Interface for building notification objects with various properties.
- */
-public interface NotificationBuilder {
-    
-    /**
-     * Sets the recipient of the notification.
-     *
-     * @param recipient The recipient identifier
-     * @return The builder for chaining
-     */
-    NotificationBuilder recipient(String recipient);
-    
-    /**
-     * Sets the subject of the notification.
-     *
-     * @param subject The notification subject or title
-     * @return The builder for chaining
-     */
-    NotificationBuilder subject(String subject);
-    
-    /**
-     * Sets the content of the notification.
-     *
-     * @param content The notification content
-     * @return The builder for chaining
-     */
-    NotificationBuilder content(String content);
-    
-    /**
-     * Sets the delivery channel for the notification.
-     *
-     * @param channel The delivery channel
-     * @return The builder for chaining
-     */
-    NotificationBuilder channel(DeliveryChannel channel);
-    
-    /**
-     * Sets the notification type.
-     *
-     * @param type The notification type
-     * @return The builder for chaining
-     */
-    NotificationBuilder type(NotificationType type);
-    
-    /**
-     * Sets the notification priority.
-     *
-     * @param priority The notification priority
-     * @return The builder for chaining
-     */
-    NotificationBuilder priority(NotificationPriority priority);
-    
-    /**
-     * Sets the template ID to be used for content generation.
-     *
-     * @param templateId The template ID
-     * @return The builder for chaining
-     */
-    NotificationBuilder templateId(String templateId);
-    
-    /**
-     * Sets template parameters for content generation.
-     *
-     * @param templateParams The template parameters
-     * @return The builder for chaining
-     */
-    NotificationBuilder templateParams(Map<String, Object> templateParams);
-    
-    /**
-     * Sets the notification group ID.
-     *
-     * @param groupId The group ID
-     * @return The builder for chaining
-     */
-    NotificationBuilder groupId(String groupId);
-    
-    /**
-     * Sets the scheduled delivery time.
-     *
-     * @param scheduledFor When the notification should be delivered
-     * @return The builder for chaining
-     */
-    NotificationBuilder scheduledFor(LocalDateTime scheduledFor);
-    
-    /**
-     * Sets the sender identifier.
-     *
-     * @param sender The sender identifier
-     * @return The builder for chaining
-     */
-    NotificationBuilder sender(String sender);
-    
-    /**
-     * Sets whether HTML is enabled for this notification.
-     *
-     * @param htmlEnabled True if HTML is enabled
-     * @return The builder for chaining
-     */
-    NotificationBuilder htmlEnabled(boolean htmlEnabled);
-    
-    /**
-     * Sets the attachment URL.
-     *
-     * @param attachmentUrl URL pointing to the attachment
-     * @return The builder for chaining
-     */
-    NotificationBuilder attachmentUrl(String attachmentUrl);
-    
-    /**
-     * Sets additional metadata for the notification.
-     *
-     * @param metadata The metadata as a string (typically JSON)
-     * @return The builder for chaining
-     */
-    NotificationBuilder metadata(String metadata);
-    
-    /**
-     * Sets maximum retry attempts.
-     *
-     * @param maxAttempts The maximum number of retry attempts
-     * @return The builder for chaining
-     */
-    NotificationBuilder maxAttempts(int maxAttempts);
-    
-    /**
-     * Builds and returns the notification object.
-     *
-     * @return The constructed notification
-     * @throws IllegalStateException if the notification cannot be built due to missing required fields
-     */
-    Notification build();
-} 
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class NotificationBuilder {
+    private NotificationType type;
+    private final Set<NotificationChannel> channels;
+    private String sender;
+    private final List<Recipient> recipients;
+    private RecipientMessage defaultMessage;
+    private LocalDateTime scheduledTime;
+    private final Map<String, String> metadata;
+    private NotificationPriority priority;
+    private Set<String> tags = new HashSet<>();
+    private Boolean retry = false;
+    private Integer maxRetryAttempt;
+
+    public NotificationBuilder() {
+        this.channels = new HashSet<>();
+        this.recipients = new ArrayList<>();
+        this.metadata = new HashMap<>();
+        this.priority = NotificationPriority.NORMAL; // Default priority
+    }
+
+    public NotificationBuilder setType(NotificationType type) {
+        this.type = type;
+        return this;
+    }
+
+    public NotificationBuilder addChannel(NotificationChannel channel) {
+        this.channels.add(channel);
+        return this;
+    }
+
+    public NotificationBuilder addChannels(NotificationChannel... channels) {
+        Collections.addAll(this.channels, channels);
+        return this;
+    }
+
+    public NotificationBuilder setSender(String sender) {
+        this.sender = sender;
+        return this;
+    }
+
+    // Email specific builders
+    public NotificationBuilder forRecipientWithEmail(String recipientId,
+                                                     String subject,
+                                                     String htmlContent,
+                                                     String plainTextContent,
+                                                     NotificationPriority priority) {
+        EmailMessage emailMessage = new EmailMessage.Builder()
+                .setSubject(subject)
+                .setHtmlContent(htmlContent)
+                .setPlainTextContent(plainTextContent)
+                .build();
+
+        Recipient recipient = new Recipient.Builder(recipientId)
+                .setMessage(RecipientMessage.withEmail(emailMessage, priority))
+                .build();
+
+        this.recipients.clear();
+        this.recipients.add(recipient);
+        this.priority = priority;
+        return this;
+    }
+
+    public NotificationBuilder forGroupWithEmail(List<String> recipientIds,
+                                                 String subject,
+                                                 String htmlContent,
+                                                 String plainTextContent,
+                                                 NotificationPriority priority) {
+        EmailMessage emailMessage = new EmailMessage.Builder()
+                .setSubject(subject)
+                .setHtmlContent(htmlContent)
+                .setPlainTextContent(plainTextContent)
+                .build();
+
+        this.recipients.clear();
+        this.defaultMessage = RecipientMessage.withEmail(emailMessage, priority);
+        this.priority = priority;
+
+        for (String recipientId : recipientIds) {
+            this.recipients.add(new Recipient.Builder(recipientId).build());
+        }
+        return this;
+    }
+
+    public NotificationBuilder addRecipientWithCustomEmail(String recipientId,
+                                                           String subject,
+                                                           String htmlContent,
+                                                           String plainTextContent,
+                                                           NotificationPriority priority) {
+        EmailMessage emailMessage = new EmailMessage.Builder()
+                .setSubject(subject)
+                .setHtmlContent(htmlContent)
+                .setPlainTextContent(plainTextContent)
+                .build();
+
+        this.recipients.add(new Recipient.Builder(recipientId)
+                .setMessage(RecipientMessage.withEmail(emailMessage, priority))
+                .build());
+        return this;
+    }
+
+    // Template based builders
+    public NotificationBuilder forRecipientWithTemplate(String recipientId,
+                                                        String templateName,
+                                                        Map<String, Object> templateData,
+                                                        NotificationPriority priority) {
+        Recipient recipient = new Recipient.Builder(recipientId)
+                .setMessage(RecipientMessage.withTemplate(templateName, templateData, priority))
+                .build();
+        this.recipients.clear();
+        this.recipients.add(recipient);
+        this.priority = priority;
+        return this;
+    }
+
+    public NotificationBuilder forGroupWithTemplate(List<String> recipientIds,
+                                                    String templateName,
+                                                    Map<String, Object> templateData,
+                                                    NotificationPriority priority) {
+        this.recipients.clear();
+        this.defaultMessage = RecipientMessage.withTemplate(templateName, templateData, priority);
+        this.priority = priority;
+
+        for (String recipientId : recipientIds) {
+            this.recipients.add(new Recipient.Builder(recipientId).build());
+        }
+        return this;
+    }
+
+    // Raw message builders
+    public NotificationBuilder forRecipientWithRawMessage(String recipientId,
+                                                          String rawMessage,
+                                                          NotificationPriority priority) {
+        Recipient recipient = new Recipient.Builder(recipientId)
+                .setMessage(RecipientMessage.withRawMessage(rawMessage, priority))
+                .build();
+        this.recipients.clear();
+        this.recipients.add(recipient);
+        this.priority = priority;
+        return this;
+    }
+
+    public NotificationBuilder forGroupWithRawMessage(List<String> recipientIds,
+                                                      String rawMessage,
+                                                      NotificationPriority priority) {
+        this.recipients.clear();
+        this.defaultMessage = RecipientMessage.withRawMessage(rawMessage, priority);
+        this.priority = priority;
+
+        for (String recipientId : recipientIds) {
+            this.recipients.add(new Recipient.Builder(recipientId).build());
+        }
+        return this;
+    }
+
+    public NotificationBuilder scheduleFor(LocalDateTime scheduledTime) {
+        this.scheduledTime = scheduledTime;
+        return this;
+    }
+
+    public NotificationBuilder addMetadata(String key, String value) {
+        this.metadata.put(key, value);
+        return this;
+    }
+
+    public NotificationBuilder addMetadata(Map<String, String> metadata) {
+        this.metadata.putAll(metadata);
+        return this;
+    }
+
+    public NotificationBuilder addTag(String tag) {
+        this.tags.add(tag);
+        return this;
+    }
+
+    public NotificationBuilder retry() {
+        this.retry = true;
+        return this;
+    }
+
+    public NotificationBuilder maxRetryAttempt(Integer maxRetryAttempt) {
+        this.maxRetryAttempt = maxRetryAttempt;
+        return this;
+    }
+
+    private void validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (type == null) {
+            errors.add("Notification type is required");
+        }
+
+        if (channels.isEmpty()) {
+            errors.add("At least one notification channel is required");
+        }
+
+        if (sender == null || sender.trim().isEmpty()) {
+            errors.add("Sender is required");
+        }
+
+        if (recipients.isEmpty()) {
+            errors.add("At least one recipient is required");
+        }
+
+        // Validate email specific requirements
+        if (channels.contains(NotificationChannel.EMAIL)) {
+            validateEmailRequirements(errors);
+        }
+
+        boolean hasDefaultMessage = defaultMessage != null;
+        boolean allRecipientsHaveMessages = recipients.stream()
+                .allMatch(r -> r.getMessage() != null);
+        boolean noRecipientsHaveMessages = recipients.stream()
+                .noneMatch(r -> r.getMessage() != null);
+
+        if (!hasDefaultMessage && !allRecipientsHaveMessages) {
+            errors.add("Either all recipients must have messages or a default message must be provided");
+        }
+
+        if (hasDefaultMessage && !noRecipientsHaveMessages) {
+            errors.add("Cannot mix default message with recipient-specific messages");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new IllegalStateException("Invalid notification request: " +
+                    errors.stream().collect(Collectors.joining(", ")));
+        }
+    }
+
+    private void validateEmailRequirements(List<String> errors) {
+        if (defaultMessage != null && defaultMessage.isEmail()) {
+            if (defaultMessage.getEmailMessage().getSubject() == null) {
+                errors.add("Email subject is required");
+            }
+        } else {
+            for (Recipient recipient : recipients) {
+                RecipientMessage message = recipient.getMessage();
+                if (message != null && message.isEmail() &&
+                        message.getEmailMessage().getSubject() == null) {
+                    errors.add("Email subject is required for recipient: " + recipient.getRecipientId());
+                }
+            }
+        }
+    }
+
+    public NotificationRequest build() {
+        validate();
+        return new NotificationRequest(
+                type,
+                channels,
+                sender,
+                recipients,
+                defaultMessage,
+                scheduledTime,
+                metadata,
+                priority,
+                tags,
+                retry,
+                maxRetryAttempt
+        );
+    }
+}

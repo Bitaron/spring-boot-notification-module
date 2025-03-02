@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 import com.notification.domain.notification.NotificationStatus;
 import com.notification.domain.notification.NotificationType;
@@ -55,7 +55,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
      * @param pageable Pagination information
      * @return Page of notifications for the channel
      */
-    Page<Notification> findByChannel(DeliveryChannel channel, Pageable pageable);
+    Page<Notification> findByChannel(NotificationChannel channel, Pageable pageable);
     
     /**
      * Finds notifications by group ID.

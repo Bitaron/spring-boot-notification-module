@@ -11,7 +11,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.template.Template;
 import com.notification.repository.TemplateRepository;
 
@@ -66,7 +66,7 @@ public class DefaultTemplateService implements TemplateService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<Template> getTemplatesByChannel(DeliveryChannel channel) {
+    public List<Template> getTemplatesByChannel(NotificationChannel channel) {
         return templateRepository.findByChannel(channel);
     }
     

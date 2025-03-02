@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.template.Template;
 
 /**
@@ -30,7 +30,7 @@ public interface TemplateRepository extends JpaRepository<Template, UUID> {
      * @param channel The delivery channel
      * @return List of templates for the channel
      */
-    List<Template> findByChannel(DeliveryChannel channel);
+    List<Template> findByChannel(NotificationChannel channel);
     
     /**
      * Finds templates for a specific locale.
@@ -47,5 +47,5 @@ public interface TemplateRepository extends JpaRepository<Template, UUID> {
      * @param active Whether templates are active
      * @return List of active templates for the channel
      */
-    List<Template> findByChannelAndActive(DeliveryChannel channel, boolean active);
+    List<Template> findByChannelAndActive(NotificationChannel channel, boolean active);
 } 

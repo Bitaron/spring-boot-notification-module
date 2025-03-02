@@ -1,15 +1,13 @@
 package com.notification.service;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 import com.notification.domain.notification.NotificationStatus;
 import com.notification.domain.notification.NotificationType;
 import com.notification.repository.NotificationRepository;
-import com.notification.service.builder.NotificationBuilder;
 import com.notification.service.delivery.DeliveryService;
 import com.notification.service.delivery.DeliveryServiceFactoryImpl;
 import com.notification.service.delivery.web.DeliveryServiceFactory;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +39,7 @@ public class NotificationService {
      *
      * @return A notification builder instance
      */
-    public NotificationBuilder createNotificationBuilder() {
+    public NotificationRequestBuilder createNotificationBuilder() {
         // Implementation needed
         throw new UnsupportedOperationException("Method not implemented");
     }
@@ -114,7 +112,7 @@ public class NotificationService {
      */
     @Transactional
     public Notification sendWithTemplate(String recipient, String templateCode,
-                                         Map<String, Object> templateParams, DeliveryChannel channel) {
+                                         Map<String, Object> templateParams, NotificationChannel channel) {
         // Implementation needed
         throw new UnsupportedOperationException("Method not implemented");
     }
@@ -256,7 +254,7 @@ public class NotificationService {
      * @return Page of notifications
      */
     @Transactional(readOnly = true)
-    public Page<Notification> getNotificationsByChannel(DeliveryChannel channel, Pageable pageable) {
+    public Page<Notification> getNotificationsByChannel(NotificationChannel channel, Pageable pageable) {
         return notificationRepository.findByChannel(channel, pageable);
     }
 

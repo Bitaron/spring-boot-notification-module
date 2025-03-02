@@ -15,7 +15,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 
 /**
  * Represents a notification template stored in the database.
@@ -65,7 +65,7 @@ public class Template {
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DeliveryChannel channel;
+    private NotificationChannel channel;
     
     /**
      * Language/locale code (e.g., 'en', 'fr', etc.).

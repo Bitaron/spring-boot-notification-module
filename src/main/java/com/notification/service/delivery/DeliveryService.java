@@ -1,6 +1,6 @@
 package com.notification.service.delivery;
 
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 
 /**
@@ -15,7 +15,7 @@ public interface DeliveryService {
      */
     boolean isSupported();
 
-    DeliveryChannel getChannel();
+    NotificationChannel getChannel();
 
     /**
      * Delivers a notification

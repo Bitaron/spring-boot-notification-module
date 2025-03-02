@@ -6,7 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.notification.config.WebSocketProperties;
-import com.notification.domain.notification.DeliveryChannel;
+import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
 import com.notification.web.dto.NotificationResponse;
 
@@ -25,8 +25,8 @@ public class WebDeliveryService implements DeliveryService {
     private final WebSocketProperties webSocketProperties;
     
     @Override
-    public DeliveryChannel getChannel() {
-        return DeliveryChannel.WEB;
+    public NotificationChannel getChannel() {
+        return NotificationChannel.WEB;
     }
     
     @Override

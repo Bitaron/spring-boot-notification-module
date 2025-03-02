@@ -3,7 +3,7 @@ package com.notification.domain.notification;
 /**
  * Enumerates the available delivery channels for notifications.
  */
-public enum DeliveryChannel {
+public enum NotificationChannel {
     /**
      * Email delivery channel.
      */
