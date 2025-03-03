@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.notification.config.WebSocketProperties;
 import com.notification.domain.notification.NotificationChannel;
 import com.notification.domain.notification.Notification;
-import com.notification.web.dto.NotificationResponse;
+
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
