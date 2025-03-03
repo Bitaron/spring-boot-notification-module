@@ -105,6 +105,13 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Spring Security Core as optional dependency -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <optional>true</optional> <!-- Makes this dependency optional -->
+        </dependency>
         
         <!-- Testing -->
         <dependency>

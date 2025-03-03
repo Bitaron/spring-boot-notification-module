@@ -1,5 +1,7 @@
 package com.notification.config;
 
+import com.notification.annotation.DefaultNotificationUserContext;
+import com.notification.annotation.NotificationUserContext;
 import com.notification.repository.NotificationRepository;
 import com.notification.service.NotificationService;
 import com.notification.service.delivery.DeliveryService;
@@ -36,6 +38,12 @@ public class NotificationModuleConfig {
     @Bean
     public NotificationService notificationService() {
         return new NotificationService(notificationRepository, deliveryServices);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(NotificationUserContext.class)
+    public NotificationUserContext defaultNotificationUserContext() {
+        return new DefaultNotificationUserContext();
     }
 
     /**

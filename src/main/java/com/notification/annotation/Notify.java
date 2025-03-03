@@ -1,81 +1,60 @@
 package com.notification.annotation;
 
+import com.notification.domain.notification.NotificationChannel;
+import com.notification.domain.notification.NotificationType;
+import com.notification.domain.notification.NotificationPriority;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.notification.domain.notification.NotificationChannel;
-import com.notification.domain.notification.NotificationPriority;
-import com.notification.domain.notification.NotificationType;
-
-/**
- * Annotation for declarative notification sending.
- */
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
 public @interface Notify {
-    
     /**
-     * The template code to use for the notification.
-     * 
-     * @return The template code
+     * Name of the NotificationDataProvider to use.
+     * If specified, recipients and templateData expressions will be ignored.
      */
-    String templateCode();
-    
+    String name() default "";
+
     /**
-     * The delivery channel to use.
-     * 
-     * @return The delivery channel
-     */
-    NotificationChannel channel();
-    
-    /**
-     * The notification type.
-     * 
-     * @return The notification type
+     * Type of notification
      */
     NotificationType type() default NotificationType.INFO;
-    
+
     /**
-     * The notification priority.
-     * 
-     * @return The notification priority
+     * Notification channels to use
+     */
+    NotificationChannel[] channels() default {NotificationChannel.EMAIL};
+
+    /**
+     * Priority of the notification
      */
     NotificationPriority priority() default NotificationPriority.NORMAL;
-    
+
     /**
-     * SpEL expression to determine the recipient.
-     * 
-     * @return The recipient expression
+     * Template name to use for successful execution (required)
      */
-    String recipient();
-    
+    String successTemplate();
+
     /**
-     * SpEL expression to extract template parameters.
-     * 
-     * @return The template parameters expression
+     * Template name to use for error cases (required)
      */
-    String templateParams() default "#root";
-    
+    String errorTemplate();
+
     /**
-     * Whether to send the notification asynchronously.
-     * 
-     * @return True if async
+     * Recipients expression (SpEL). Ignored if name is specified.
      */
-    boolean async() default true;
-    
+    String recipients() default "";
+
     /**
-     * Whether to skip the notification if an exception is thrown by the method.
-     * 
-     * @return True if should skip on error
+     * Template data expressions (SpEL). Ignored if name is specified.
      */
-    boolean skipOnError() default true;
-    
+    String templateData() default "";
+
     /**
-     * Group identifier for related notifications.
-     * 
-     * @return The group ID expression
+     * Condition expression (SpEL) that determines if notification should be sent
      */
-    String groupId() default "";
-} 
+    String condition() default "";
+}
