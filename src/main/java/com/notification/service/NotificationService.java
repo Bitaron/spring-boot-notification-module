@@ -9,9 +9,10 @@ import com.notification.service.builder.NotificationRequest;
 import com.notification.service.builder.Recipient;
 import com.notification.service.builder.RecipientMessage;
 import com.notification.service.delivery.DeliveryService;
-import com.notification.service.delivery.web.DeliveryServiceFactory;
+import com.notification.service.delivery.DeliveryServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,15 +29,14 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final DeliveryServiceFactory deliveryServiceFactory;
-    private final boolean useMessageQueue;
     private final NotificationQueueSender notificationQueueSender;
 
+    @Autowired
     public NotificationService(NotificationRepository notificationRepository,
                                DeliveryServiceFactory deliveryServiceFactory,
                                boolean useMessageQueue, NotificationQueueSender notificationQueueSender) {
         this.notificationRepository = notificationRepository;
         this.deliveryServiceFactory = deliveryServiceFactory;
-        this.useMessageQueue = useMessageQueue;
         this.notificationQueueSender = notificationQueueSender;
     }
 
@@ -44,8 +44,8 @@ public class NotificationService {
     public String sendNotification(NotificationRequest request) {
         Notification entity = saveNotification(request);
 
-        if (useMessageQueue) {
-            notificationQueueSender.sendNotification(request);
+        if (notificationQueueSender != null) {
+            notificationQueueSender.sendNotification(entity);
         } else {
             processNotificationAsync(entity.getNotificationId());
         }
@@ -104,7 +104,7 @@ public class NotificationService {
     }
 
     @Transactional
-    protected void processNotification(String notificationId) {
+    public void processNotification(String notificationId) {
         Notification notification = notificationRepository.findByNotificationId(notificationId)
                 .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
 
@@ -128,7 +128,8 @@ public class NotificationService {
                                Notification notification,
                                NotificationRecipient recipient) {
         try {
-            DeliveryService deliveryService = deliveryServiceFactory.getDeliveryService(notification);
+            DeliveryService deliveryService = deliveryServiceFactory.getDeliveryService(channel);
+            deliveryService.deliver(notification);
             recordDeliveryAttempt(notification, recipient, channel, true, null);
         } catch (Exception e) {
             throw new NotificationException("Failed to send notification via " + channel, e);
@@ -177,8 +178,8 @@ public class NotificationService {
         } else if (message.isEmail()) {
             EmailMessage emailMessage = message.getEmailMessage();
             entity.setSubject(emailMessage.getSubject());
-            entity.setHtmlContent(emailMessage.getHtmlContent());
-            entity.setPlainTextContent(emailMessage.getPlainTextContent());
+            entity.setIsHtml(true);
+            //  entity.setPlainTextContent(emailMessage.getPlainTextContent());
         } else {
             entity.setRawMessage(message.getRawMessage());
         }

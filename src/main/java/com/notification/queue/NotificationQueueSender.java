@@ -27,14 +27,14 @@ public class NotificationQueueSender {
     /**
      * Sends a notification to the queue for asynchronous processing.
      *
-     * @param notificationRequest The notification to send
+     * @param notification The notification to send
      */
-    public void sendNotification(NotificationRequest notificationRequest) {
-        log.info("Sending notification to queue: {}", notificationRequest.getSender());
+    public void sendNotification(Notification notification) {
+        log.info("Sending notification to queue: {}", notification.getId());
 
-        for (NotificationChannel channel : notificationRequest.getChannels()) {
+        for (NotificationChannel channel : notification.getChannels()) {
             String routingKey = queueProperties.getRoutingKey() + "." + channel.name().toLowerCase();
-            rabbitTemplate.convertAndSend(queueProperties.getExchange(), routingKey, notificationRequest);
+            rabbitTemplate.convertAndSend(queueProperties.getExchange(), routingKey, notification);
         }
     }
 } 

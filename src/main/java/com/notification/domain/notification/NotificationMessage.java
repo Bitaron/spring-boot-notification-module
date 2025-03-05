@@ -25,11 +25,11 @@ public class NotificationMessage extends BaseEntity {
     @Column(name = "subject")
     private String subject;
 
-    @Column(name = "html_content", columnDefinition = "TEXT")
-    private String htmlContent;
+    @Column(name = "is_html")
+    private Boolean isHtml;
 
-    @Column(name = "plain_text_content", columnDefinition = "TEXT")
-    private String plainTextContent;
+    @Column(name = "attachment_url" )
+    private String attachmentUrl;
 
     @ElementCollection
     @CollectionTable(

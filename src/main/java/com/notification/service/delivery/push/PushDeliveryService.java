@@ -16,12 +16,12 @@ import lombok.extern.slf4j.Slf4j;
  * This is a placeholder implementation - in a real application,
  * you would integrate with FCM (Firebase) and APNS (Apple) services.
  */
-@Service
+
 @RequiredArgsConstructor
 @Slf4j
-public class PushDeliveryService implements DeliveryService {
+public class PushDeliveryService  {
     
-    private final PushProperties pushProperties;
+  /*  private final PushProperties pushProperties;
     
     @Override
     public NotificationChannel getChannel() {
@@ -68,5 +68,5 @@ public class PushDeliveryService implements DeliveryService {
     
     // In a real implementation, you would have methods like:
     // private Message createFcmMessage(Notification notification) { ... }
-    // private ApnsPayload createApnsPayload(Notification notification) { ... }
+    // private ApnsPayload createApnsPayload(Notification notification) { ... }*/
 } 

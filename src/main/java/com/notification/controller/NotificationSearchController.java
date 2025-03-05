@@ -33,8 +33,8 @@ public class NotificationSearchController {
      * @param pageable Pagination parameters
      * @return Page of matching notifications
      */
-    @GetMapping("/search")
+ /*   @GetMapping("/search")
     public Page<Notification> search(@RequestParam String query, Pageable pageable) {
         return notificationRepository.searchWithDatabaseSpecifics(query, pageable);
-    }
+    }*/
 }

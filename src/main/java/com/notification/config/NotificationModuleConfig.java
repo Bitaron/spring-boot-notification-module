@@ -1,12 +1,7 @@
 package com.notification.config;
 
-import com.notification.annotation.DefaultNotificationUserContext;
-import com.notification.annotation.NotificationUserContext;
 import com.notification.repository.NotificationRepository;
-import com.notification.service.NotificationService;
 import com.notification.service.delivery.DeliveryService;
-import com.notification.service.delivery.DeliveryServiceFactoryImpl;
-import com.notification.service.delivery.web.DeliveryServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -35,7 +30,7 @@ public class NotificationModuleConfig {
     @Autowired
     List<DeliveryService> deliveryServices;
 
-    @Bean
+   /* @Bean
     public NotificationService notificationService() {
         return new NotificationService(notificationRepository, deliveryServices);
     }
@@ -44,7 +39,7 @@ public class NotificationModuleConfig {
     @ConditionalOnMissingBean(NotificationUserContext.class)
     public NotificationUserContext defaultNotificationUserContext() {
         return new DefaultNotificationUserContext();
-    }
+    }*/
 
     /**
      * Creates a default task executor if none is provided.

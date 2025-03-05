@@ -48,4 +48,8 @@ public interface TemplateRepository extends JpaRepository<Template, UUID> {
      * @return List of active templates for the channel
      */
     List<Template> findByChannelAndActive(NotificationChannel channel, boolean active);
-} 
+
+    Optional<Template> findByNameAndChannel(String templateName, NotificationChannel channel);
+
+    Optional<Template> findByName(String templateName);
+}

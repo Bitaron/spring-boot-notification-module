@@ -1,20 +1,21 @@
 package com.notification.service.delivery.email;
 
-import java.io.File;
-
+import com.notification.config.EmailProperties;
+import com.notification.domain.notification.Notification;
+import com.notification.domain.notification.NotificationChannel;
+import com.notification.domain.notification.NotificationMessage;
+import com.notification.domain.notification.NotificationRecipient;
+import com.notification.service.NotificationMessageResolver;
 import com.notification.service.delivery.DeliveryException;
 import com.notification.service.delivery.DeliveryService;
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.notification.config.EmailProperties;
-import com.notification.domain.notification.NotificationChannel;
-import com.notification.domain.notification.Notification;
-
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
 
 /**
  * Service for delivering notifications via email.
@@ -26,6 +27,7 @@ public class EmailDeliveryService implements DeliveryService {
 
     private final JavaMailSender mailSender;
     private final EmailProperties emailProperties;
+    private final NotificationMessageResolver notificationMessageResolver;
 
 
     @Override
@@ -41,27 +43,32 @@ public class EmailDeliveryService implements DeliveryService {
 
         try {
             String fromAddress = emailProperties.getFromAddress();
-            String recipient = notification.getRecipient();
+            for (NotificationRecipient notificationRecipient : notification.getRecipients()) {
+                String recipient = notificationRecipient.getAddress().getOrDefault(getChannel(), "");
+                if (!recipient.isEmpty()) {
+                    NotificationMessage notificationMessage = notificationRecipient.getMessage();
+                    // Use notification subject or default
+                    String subject = notificationMessage.getSubject();
+                    if (subject == null || subject.isEmpty()) {
+                        subject = emailProperties.getDefaultSubject();
+                    }
 
-            // Use notification subject or default
-            String subject = notification.getSubject();
-            if (subject == null || subject.isEmpty()) {
-                subject = emailProperties.getDefaultSubject();
+                    NotificationMessageResolver.NotificationContent notificationContent = notificationMessageResolver.resolveMessage(notificationMessage, getChannel());
+                    String content = notificationContent.getContent();
+                    boolean isHtml = notificationContent.getIsHtml();
+
+                    String attachmentUrl = notificationMessage.getAttachmentUrl();
+                    File attachment = null;
+
+                    if (attachmentUrl != null && !attachmentUrl.isEmpty()) {
+                        attachment = new File(attachmentUrl);
+                    }
+
+                    log.info("Sending email to {} with subject: {}", notificationRecipient.getRecipientId(), subject);
+
+                    sendEmail(fromAddress, recipient, subject, content, isHtml, attachment);
+                }
             }
-
-            String content = notification.getContent();
-            boolean isHtml = notification.getHtmlEnabled();
-
-            String attachmentUrl = notification.getAttachmentUrl();
-            File attachment = null;
-
-            if (attachmentUrl != null && !attachmentUrl.isEmpty()) {
-                attachment = new File(attachmentUrl);
-            }
-
-            log.info("Sending email to {} with subject: {}", notification.getRecipient(), notification.getSubject());
-
-            sendEmail(fromAddress, recipient, subject, content, isHtml, attachment);
 
         } catch (Exception e) {
             throw new DeliveryException("Failed to deliver email notification", e);

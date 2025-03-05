@@ -26,17 +26,17 @@ public class NotificationQueueListener {
     /**
      * Handles notifications received from the queue.
      *
-     * @param notificationRequest The notification to process
+     * @param notification The notification to process
      */
     @RabbitListener(queues = "${notification.queue.name}")
-    public void handleNotification(NotificationRequest notificationRequest) {
-        log.info("Received notification from queue: {}", notificationRequest.getSender());
+    public void handleNotification(Notification notification) {
+        log.info("Received notification from queue: {}", notification.getNotificationId());
         
         try {
-            notificationService.sendNotification(notificationRequest);
-            log.info("Successfully processed notification from queue: {}", notificationRequest.getSender());
+            notificationService.processNotification(notification.getNotificationId());
+            log.info("Successfully processed notification from queue: {}", notification.getNotificationId());
         } catch (Exception e) {
-            log.error("Error processing notification from queue: {}",  notificationRequest.getSender(), e);
+            log.error("Error processing notification from queue: {}",  notification.getNotificationId(), e);
         }
     }
 } 

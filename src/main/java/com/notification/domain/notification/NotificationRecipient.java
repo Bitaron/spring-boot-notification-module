@@ -34,12 +34,12 @@ public class NotificationRecipient extends BaseEntity {
 
     @ElementCollection
     @CollectionTable(
-            name = "recipient_attributes",
+            name = "recipient_address",
             joinColumns = @JoinColumn(name = "recipient_id")
     )
-    @MapKeyColumn(name = "attribute_key")
-    @Column(name = "attribute_value")
-    private Map<String, String> attributes = new HashMap<>();
+    @MapKeyColumn(name = "notification_channel")
+    @Column(name = "recipient_address")
+    private Map<NotificationChannel, String> address = new HashMap<>();
 
     // Getters and Setters
 }

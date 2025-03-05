@@ -20,15 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RetryService {
 
-    private final RetryProperties retryProperties;
+    /*private final RetryProperties retryProperties;
     private final Random random = new Random();
     
-    /**
+    *//**
      * Calculate the next retry time for a failed notification.
      * 
      * @param notification The failed notification
      * @return The next retry time
-     */
+     *//*
     public LocalDateTime calculateNextRetryTime(Notification notification) {
         // Base delay in seconds
         int baseDelay = retryProperties.getBaseDelaySeconds();
@@ -66,12 +66,12 @@ public class RetryService {
         return LocalDateTime.now().plusSeconds(baseDelay);
     }
     
-    /**
+    *//**
      * Determine if a notification has reached its maximum retry attempts.
      * 
      * @param notification The notification to check
      * @return true if max attempts reached, false otherwise
-     */
+     *//*
     public boolean hasReachedMaxAttempts(Notification notification) {
         int maxAttempts = notification.getMaxAttempts();
         if (maxAttempts <= 0) {
@@ -80,5 +80,5 @@ public class RetryService {
         }
         
         return notification.getAttemptCount() >= maxAttempts;
-    }
+    }*/
 } 

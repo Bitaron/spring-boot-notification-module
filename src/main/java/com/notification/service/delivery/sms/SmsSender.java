@@ -1,5 +1,7 @@
 package com.notification.service.delivery.sms;
 
+import java.util.Map;
+
 /**
  * Interface for SMS service providers.
  * Applications can implement this interface to integrate with their preferred SMS gateway.
@@ -14,7 +16,10 @@ public interface SmsSender {
      * @throws SmsException if sending fails
      */
     void sendSms(String recipient, String content) throws SmsException;
-    
+
+
+    void sendBulkSms(Map<String, String> recipientListWithMessage) throws SmsException;
+
     /**
      * Checks if this SMS sender is properly configured and ready to use.
      *

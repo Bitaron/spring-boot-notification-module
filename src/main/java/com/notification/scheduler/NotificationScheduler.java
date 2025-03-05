@@ -24,7 +24,7 @@ public class NotificationScheduler {
     /**
      * Processes scheduled notifications that are due to be sent.
      */
-    @Scheduled(fixedDelayString = "${notification.scheduler.scheduled-notifications-interval:60000}")
+   /* @Scheduled(fixedDelayString = "${notification.scheduler.scheduled-notifications-interval:60000}")
     public void processScheduledNotifications() {
         log.info("Processing scheduled notifications");
         try {
@@ -34,9 +34,9 @@ public class NotificationScheduler {
         }
     }
     
-    /**
+    *//**
      * Processes failed notifications that are eligible for retry.
-     */
+     *//*
     @Scheduled(fixedDelayString = "${notification.scheduler.retry-notifications-interval:300000}")
     public void processRetryNotifications() {
         log.info("Processing retry notifications");
@@ -45,5 +45,5 @@ public class NotificationScheduler {
         } catch (Exception e) {
             log.error("Error processing retry notifications", e);
         }
-    }
+    }*/
 } 

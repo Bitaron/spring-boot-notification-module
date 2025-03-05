@@ -1,5 +1,6 @@
 package com.notification.config;
 
+import com.notification.service.NotificationMessageResolver;
 import com.notification.service.delivery.email.EmailDeliveryService;
 import com.notification.service.delivery.sms.SmsDeliveryService;
 import com.notification.service.delivery.sms.SmsSender;
@@ -27,6 +28,9 @@ public class DeliveryChannelConfiguration {
     @Autowired
     SimpMessagingTemplate simpMessagingTemplate;
 
+    @Autowired
+    NotificationMessageResolver notificationMessageResolver;
+
     /**
      * SMS delivery service that will only be created if SMS is enabled.
      * If SMS is enabled but no SmsDeliveryProvider is provided, a compile-time error will occur.
@@ -38,7 +42,7 @@ public class DeliveryChannelConfiguration {
         if (!smsDeliveryProvider.isConfigured()) {
             throw new IllegalStateException("SMS is enabled but the SmsDeliveryProvider is not properly configured");
         }
-        return new SmsDeliveryService(smsDeliveryProvider, properties);
+        return new SmsDeliveryService(smsDeliveryProvider, properties,notificationMessageResolver);
     }
 
     /**
@@ -48,7 +52,7 @@ public class DeliveryChannelConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "notification.email", name = "enabled", havingValue = "true")
     public EmailDeliveryService emailDeliveryService(EmailProperties properties) {
-        return new EmailDeliveryService(javaMailSender, properties);
+        return new EmailDeliveryService(javaMailSender, properties,notificationMessageResolver);
     }
 
     /**
@@ -58,7 +62,7 @@ public class DeliveryChannelConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "notification.web", name = "enabled", havingValue = "true", matchIfMissing = true)
     public WebDeliveryService webDeliveryService(WebSocketProperties properties) {
-        return new WebDeliveryService(simpMessagingTemplate, properties);
+        return new WebDeliveryService(simpMessagingTemplate, properties,notificationMessageResolver);
     }
 
 
