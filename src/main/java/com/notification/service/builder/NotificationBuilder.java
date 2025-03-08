@@ -48,6 +48,11 @@ public class NotificationBuilder {
         return this;
     }
 
+    public NotificationBuilder setPriority(NotificationPriority priority) {
+        this.priority = priority;
+        return this;
+    }
+
     // Email specific builders
     public NotificationBuilder forRecipientWithEmail(String recipientId,
                                                      String subject,
@@ -138,14 +143,13 @@ public class NotificationBuilder {
 
     // Raw message builders
     public NotificationBuilder forRecipientWithRawMessage(String recipientId,
-                                                          String rawMessage,
-                                                          NotificationPriority priority) {
-        Recipient recipient = new Recipient.Builder(recipientId)
+                                                          Map<NotificationChannel, String> address,
+                                                          String rawMessage) {
+        Recipient recipient = new Recipient.Builder(recipientId, address)
                 .setMessage(RecipientMessage.withRawMessage(rawMessage, priority))
                 .build();
         this.recipients.clear();
         this.recipients.add(recipient);
-        this.priority = priority;
         return this;
     }
 
@@ -203,10 +207,10 @@ public class NotificationBuilder {
             errors.add("At least one notification channel is required");
         }
 
-        if (sender == null || sender.trim().isEmpty()) {
+        /*if (sender == null || sender.trim().isEmpty()) {
             errors.add("Sender is required");
         }
-
+*/
         if (recipients.isEmpty()) {
             errors.add("At least one recipient is required");
         }

@@ -45,14 +45,14 @@ public class NotificationMessageResolver {
      * @throws NotificationMessageException if message cannot be resolved
      */
     public NotificationContent resolveMessage(NotificationMessage notification, NotificationChannel channel) {
-        logProcessingStart(notification, channel);
+     //   logProcessingStart(notification, channel);
 
         try {
             NotificationContent message = resolveMessageInternal(notification, channel);
-            logProcessingSuccess(notification, channel);
+        //    logProcessingSuccess(notification, channel);
             return message;
         } catch (Exception e) {
-            logProcessingError(notification, channel, e);
+         //   logProcessingError(notification, channel, e);
             throw new NotificationMessageException(
                     "Failed to resolve notification message", e);
         }
@@ -69,7 +69,7 @@ public class NotificationMessageResolver {
                     );
 
             if (channelTemplate.isPresent()) {
-                logTemplateFound("channel-specific", notification.getTemplateName(), channel);
+              //  logTemplateFound("channel-specific", notification.getTemplateName(), channel);
                 String content = processTemplate(
                         channelTemplate.get().getContent(),
                         notification.getTemplateData()
@@ -82,7 +82,7 @@ public class NotificationMessageResolver {
                     templateRepository.findByName(notification.getTemplateName());
 
             if (defaultTemplate.isPresent()) {
-                logTemplateFound("default", notification.getTemplateName(), channel);
+           //     logTemplateFound("default", notification.getTemplateName(), channel);
                 String content = processTemplate(
                         channelTemplate.get().getContent(),
                         notification.getTemplateData()
@@ -99,7 +99,7 @@ public class NotificationMessageResolver {
 
         // Step 5: Check raw message
         if (notification.getRawMessage() != null && !notification.getRawMessage().isEmpty()) {
-            logRawMessageFound(channel);
+          //  logRawMessageFound(channel);
             return new NotificationContent(notification.getRawMessage(), notification.getIsHtml());
         }
 

@@ -20,23 +20,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ConditionalOnProperty(name = "notification.use-queue", havingValue = "true")
 public class NotificationQueueListener {
-    
+
     private final NotificationService notificationService;
-    
+
     /**
      * Handles notifications received from the queue.
      *
-     * @param notification The notification to process
+     * @param request The notification to process
      */
     @RabbitListener(queues = "${notification.queue.name}")
-    public void handleNotification(Notification notification) {
-        log.info("Received notification from queue: {}", notification.getNotificationId());
-        
+    public void handleNotification(NotificationRequest request) {
+        log.info("Received notification from queue: {}", request.getNotificationId());
+
         try {
-            notificationService.processNotification(notification.getNotificationId());
-            log.info("Successfully processed notification from queue: {}", notification.getNotificationId());
+            notificationService.processNotification(request);
+            log.info("Successfully processed notification from queue: {}", request.getNotificationId());
         } catch (Exception e) {
-            log.error("Error processing notification from queue: {}",  notification.getNotificationId(), e);
+            log.error("Error processing notification from queue: {}", request.getNotificationId(), e);
         }
     }
 } 

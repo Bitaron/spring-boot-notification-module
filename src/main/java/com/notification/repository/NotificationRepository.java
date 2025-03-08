@@ -16,11 +16,6 @@ import java.util.Optional;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    @Modifying
-    @Query("UPDATE Notification n SET n.status = :status, n.updatedAt = :updatedAt, " +
-            "n.updatedBy = :updatedBy WHERE n.notificationId = :notificationId")
-    void updateStatus(String notificationId, NotificationStatus status,
-                      LocalDateTime updatedAt, String updatedBy);
 
     Optional<Notification> findByNotificationId(String notificationId);
 }

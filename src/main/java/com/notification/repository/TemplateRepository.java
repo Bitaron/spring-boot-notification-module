@@ -14,7 +14,7 @@ import com.notification.domain.template.Template;
  * Repository for managing notification templates.
  */
 @Repository
-public interface TemplateRepository extends JpaRepository<Template, UUID> {
+public interface TemplateRepository extends JpaRepository<Template, Long> {
     
     /**
      * Finds a template by its unique code.

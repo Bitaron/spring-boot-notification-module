@@ -32,9 +32,6 @@ public class DefaultTemplateService implements TemplateService {
     @Override
     @Transactional
     public Template createTemplate(Template template) {
-        if (template.getId() == null) {
-            template.setId(UUID.randomUUID());
-        }
         template.setCreatedAt(LocalDateTime.now());
         template.setUpdatedAt(LocalDateTime.now());
         return templateRepository.save(template);
@@ -53,7 +50,7 @@ public class DefaultTemplateService implements TemplateService {
     
     @Override
     @Transactional(readOnly = true)
-    public Optional<Template> getTemplate(UUID id) {
+    public Optional<Template> getTemplate(Long id) {
         return templateRepository.findById(id);
     }
     
@@ -79,14 +76,14 @@ public class DefaultTemplateService implements TemplateService {
     @Override
     @Transactional
     @CacheEvict(value = "templates", allEntries = true)
-    public void deleteTemplate(UUID id) {
+    public void deleteTemplate(Long id) {
         templateRepository.deleteById(id);
     }
     
     @Override
     @Transactional
     @CacheEvict(value = "templates", key = "#result.code")
-    public Template setTemplateActive(UUID id, boolean active) {
+    public Template setTemplateActive(Long id, boolean active) {
         Template template = templateRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Template not found with ID: " + id));
         template.setActive(active);

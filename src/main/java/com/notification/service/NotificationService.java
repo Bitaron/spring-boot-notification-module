@@ -10,6 +10,7 @@ import com.notification.service.builder.Recipient;
 import com.notification.service.builder.RecipientMessage;
 import com.notification.service.delivery.DeliveryService;
 import com.notification.service.delivery.DeliveryServiceFactory;
+import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,33 +35,47 @@ public class NotificationService {
     @Autowired
     public NotificationService(NotificationRepository notificationRepository,
                                DeliveryServiceFactory deliveryServiceFactory,
-                               boolean useMessageQueue, NotificationQueueSender notificationQueueSender) {
+                               @Nullable NotificationQueueSender notificationQueueSender) {
         this.notificationRepository = notificationRepository;
         this.deliveryServiceFactory = deliveryServiceFactory;
         this.notificationQueueSender = notificationQueueSender;
     }
 
+
     @Transactional
     public String sendNotification(NotificationRequest request) {
-        Notification entity = saveNotification(request);
-
+        request.setNotificationId(UUID.randomUUID().toString());
         if (notificationQueueSender != null) {
-            notificationQueueSender.sendNotification(entity);
+            notificationQueueSender.sendNotification(request);
         } else {
-            processNotificationAsync(entity.getNotificationId());
+            processNotificationAsync(request);
         }
 
-        return entity.getNotificationId();
+        return request.getNotificationId();
     }
 
     // Convenient methods for common notification scenarios
     @Transactional
-    public String sendSimpleEmail(String to, String subject, String content) {
+    public String sendEmail(String to, String subject, String content) {
         NotificationRequest request = NotificationRequest.builder()
-                .setType(NotificationType.TRANSACTIONAL)
+                .setType(NotificationType.INFO)
                 .addChannel(NotificationChannel.EMAIL)
                 .setSender("system@example.com")
                 .forRecipientWithEmail(to, subject, content, content, NotificationPriority.NORMAL)
+                .build();
+
+        return sendNotification(request);
+    }
+
+    @Transactional
+    public String sendSms(String to, String content) {
+        Map<NotificationChannel, String> address = new HashMap<>();
+        address.put(NotificationChannel.SMS, to);
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.INFO)
+                .addChannel(NotificationChannel.SMS)
+                .setPriority(NotificationPriority.NORMAL)
+                .forRecipientWithRawMessage(to, address, content)
                 .build();
 
         return sendNotification(request);
@@ -92,23 +107,26 @@ public class NotificationService {
     }
 
     @Async
-    protected CompletableFuture<Void> processNotificationAsync(String notificationId) {
+    protected CompletableFuture<Void> processNotificationAsync(NotificationRequest request) {
         return CompletableFuture.runAsync(() -> {
             try {
-                processNotification(notificationId);
+                processNotification(request);
             } catch (Exception e) {
-                logger.error("Error processing notification: " + notificationId, e);
-                updateNotificationStatus(notificationId, NotificationStatus.FAILED);
+                logger.error("Error processing notification: " + request.getNotificationId(), e);
+                updateNotificationStatus(request.getNotificationId(), NotificationStatus.FAILED);
             }
         });
     }
 
-    @Transactional
-    public void processNotification(String notificationId) {
-        Notification notification = notificationRepository.findByNotificationId(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
 
-        updateNotificationStatus(notificationId, NotificationStatus.PROCESSING);
+
+    @Transactional
+    public void processNotification(NotificationRequest request) {
+        Notification notification = saveNotification(request);
+       /* Notification notification = notificationRepository.findByNotificationId(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+*/
+        updateNotificationStatus(notification, NotificationStatus.PROCESSING);
 
         for (NotificationChannel channel : notification.getChannels()) {
             for (NotificationRecipient recipient : notification.getRecipients()) {
@@ -121,7 +139,7 @@ public class NotificationService {
             }
         }
 
-        updateNotificationStatus(notificationId, NotificationStatus.DELIVERED);
+        updateNotificationStatus(notification, NotificationStatus.DELIVERED);
     }
 
     private void sendByChannel(NotificationChannel channel,
@@ -138,7 +156,7 @@ public class NotificationService {
 
     private Notification saveNotification(NotificationRequest request) {
         Notification entity = new Notification();
-        entity.setNotificationId(UUID.randomUUID().toString());
+        entity.setNotificationId(request.getNotificationId());
         entity.setType(request.getType());
         entity.setChannels(request.getChannels());
         entity.setSender(request.getSender());
@@ -147,21 +165,20 @@ public class NotificationService {
                 NotificationStatus.SCHEDULED : NotificationStatus.PENDING);
         entity.setPriority(request.getPriority());
 
-        // Set creation details
-        entity.setCreatedAt(LocalDateTime.parse("2025-03-02T09:43:30"));
-        entity.setCreatedBy("Bitaron");
 
         // Save recipients
         for (Recipient recipient : request.getRecipients()) {
             NotificationRecipient recipientEntity = new NotificationRecipient();
             recipientEntity.setRecipientId(recipient.getRecipientId());
             recipientEntity.setNotification(entity);
+            recipientEntity.setAddress(recipient.getAddress());
 
             // Save message
             if (recipient.getMessage() != null) {
                 NotificationMessage messageEntity = createMessageEntity(recipient.getMessage());
                 recipientEntity.setMessage(messageEntity);
             }
+
 
             entity.getRecipients().add(recipientEntity);
         }
@@ -203,8 +220,15 @@ public class NotificationService {
     }
 
     @Transactional
-    protected void updateNotificationStatus(String notificationId, NotificationStatus status) {
-        notificationRepository.updateStatus(notificationId, status,
-                LocalDateTime.parse("2025-03-02T09:43:30"), "Bitaron");
+    protected void updateNotificationStatus(Notification notification, NotificationStatus status) {
+        notification.setStatus(status);
+        notificationRepository.save(notification);
+    }
+
+    @Transactional
+    protected void updateNotificationStatus(String notificationId, NotificationStatus notificationStatus) {
+        Notification notification = notificationRepository.findByNotificationId(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+        updateNotificationStatus(notification, notificationStatus);
     }
 }

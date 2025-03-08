@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -18,7 +19,8 @@ import java.util.*;
  * @author Bitaron
  */
 @Data
-public class NotificationRequest {
+public class NotificationRequest implements Serializable {
+    private String notificationId;
     private final String requestId;
     private final LocalDateTime createdAt;
     private final String createdBy;
@@ -63,7 +65,7 @@ public class NotificationRequest {
         this.priority = priority;
         this.tags = tags;
         this.retry = retry;
-        this.maxRetryAttempt= maxRetryAttempt;
+        this.maxRetryAttempt = maxRetryAttempt;
     }
 
     /**

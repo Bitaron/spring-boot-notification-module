@@ -1,31 +1,37 @@
 package com.notification.service.builder;
 
-import java.util.Collections;
+import com.notification.domain.notification.NotificationChannel;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class Recipient {
     private final String recipientId;
-    private final Map<String, String> attributes;
+    private final Map<NotificationChannel, String> address;
     private final RecipientMessage message;
 
-    private Recipient(String recipientId, Map<String, String> attributes, RecipientMessage message) {
+    private Recipient(String recipientId, Map<NotificationChannel, String> address, RecipientMessage message) {
         this.recipientId = recipientId;
-        this.attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
+        this.address = Map.copyOf(address);
         this.message = message;
     }
 
     public static class Builder {
         private final String recipientId;
-        private final Map<String, String> attributes = new HashMap<>();
+        private final Map<NotificationChannel, String> address = new HashMap<>();
         private RecipientMessage message;
 
         public Builder(String recipientId) {
             this.recipientId = recipientId;
         }
 
-        public Builder addAttribute(String key, String value) {
-            this.attributes.put(key, value);
+        public Builder(String recipientId, Map<NotificationChannel, String> address) {
+            this.recipientId = recipientId;
+            this.address.putAll(address);
+        }
+
+        public Builder addAddress(NotificationChannel key, String value) {
+            this.address.put(key, value);
             return this;
         }
 
@@ -35,7 +41,7 @@ public class Recipient {
         }
 
         public Recipient build() {
-            return new Recipient(recipientId, attributes, message);
+            return new Recipient(recipientId, address, message);
         }
     }
 
@@ -43,8 +49,8 @@ public class Recipient {
         return recipientId;
     }
 
-    public Map<String, String> getAttributes() {
-        return attributes;
+    public Map<NotificationChannel, String> getAddress() {
+        return address;
     }
 
     public RecipientMessage getMessage() {

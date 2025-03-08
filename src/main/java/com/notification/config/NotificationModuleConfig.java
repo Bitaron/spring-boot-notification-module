@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.task.TaskExecutor;
@@ -23,6 +24,7 @@ import java.util.List;
 @ComponentScan(basePackages = "com.notification")
 @EntityScan(basePackages = "com.notification.domain")
 @EnableJpaRepositories(basePackages = "com.notification.repository")
+@EnableConfigurationProperties(NotificationProperties.class)
 public class NotificationModuleConfig {
     @Autowired
     NotificationRepository notificationRepository;
@@ -40,12 +42,12 @@ public class NotificationModuleConfig {
     public NotificationUserContext defaultNotificationUserContext() {
         return new DefaultNotificationUserContext();
     }*/
-
-    /**
+/*
+    *//**
      * Creates a default task executor if none is provided.
      *
      * @return The task executor for asynchronous operations
-     */
+     *//*
     @Bean
     @ConditionalOnMissingBean(name = "notificationTaskExecutor")
     public TaskExecutor notificationTaskExecutor() {
@@ -56,5 +58,5 @@ public class NotificationModuleConfig {
         executor.setThreadNamePrefix("notification-");
         executor.initialize();
         return executor;
-    }
+    }*/
 } 

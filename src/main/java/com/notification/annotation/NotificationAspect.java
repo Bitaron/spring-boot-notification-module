@@ -12,6 +12,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -25,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Aspect
-@RequiredArgsConstructor
 @Component
 public class NotificationAspect {
     private static final Logger logger = LoggerFactory.getLogger(NotificationAspect.class);
@@ -39,6 +39,7 @@ public class NotificationAspect {
     private final Map<String, NotificationDataProvider> providers;
     private final NotificationUserContext userContext;
 
+    @Autowired
     public NotificationAspect(NotificationService notificationService,
                               NotificationProperties properties,
                               ApplicationContext applicationContext,

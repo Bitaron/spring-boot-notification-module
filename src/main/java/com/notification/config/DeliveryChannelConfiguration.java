@@ -20,7 +20,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
  * interfaces based on which channels they've enabled.
  */
 @AutoConfiguration
-@EnableConfigurationProperties(NotificationProperties.class)
 public class DeliveryChannelConfiguration {
     @Autowired
     JavaMailSender javaMailSender;

@@ -34,7 +34,7 @@ public class NotificationRecipient extends BaseEntity {
 
     @ElementCollection
     @CollectionTable(
-            name = "recipient_address",
+            name = "notification_recipient_address",
             joinColumns = @JoinColumn(name = "recipient_id")
     )
     @MapKeyColumn(name = "notification_channel")

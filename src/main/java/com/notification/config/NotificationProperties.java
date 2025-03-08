@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * Configuration properties for the notification module.
  */
-@Configuration
+
 @ConfigurationProperties(prefix = "notification")
 @Data
 public class NotificationProperties {

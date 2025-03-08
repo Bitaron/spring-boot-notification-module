@@ -36,7 +36,7 @@ public interface TemplateService {
      * @param id The template ID
      * @return The template, if found
      */
-    Optional<Template> getTemplate(UUID id);
+    Optional<Template> getTemplate(Long id);
     
     /**
      * Retrieves a template by its code.
@@ -67,7 +67,7 @@ public interface TemplateService {
      *
      * @param id The template ID to delete
      */
-    void deleteTemplate(UUID id);
+    void deleteTemplate(Long id);
     
     /**
      * Activates or deactivates a template.
@@ -76,7 +76,7 @@ public interface TemplateService {
      * @param active Whether the template should be active
      * @return The updated template
      */
-    Template setTemplateActive(UUID id, boolean active);
+    Template setTemplateActive(Long id, boolean active);
     
     /**
      * Processes a template identified by code with the given parameters.

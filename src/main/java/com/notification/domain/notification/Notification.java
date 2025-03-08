@@ -13,7 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "notifications")
+@Table(name = "notification_notifications")
 public class Notification extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +26,7 @@ public class Notification extends BaseEntity {
     @Column(name = "type", nullable = false)
     private NotificationType type;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "notification_channels",
             joinColumns = @JoinColumn(name = "notification_id")
@@ -58,7 +58,7 @@ public class Notification extends BaseEntity {
     @Column(name = "max_retries")
     private Integer maxRetries;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "notification_metadata",
             joinColumns = @JoinColumn(name = "notification_id")
@@ -67,7 +67,7 @@ public class Notification extends BaseEntity {
     @Column(name = "metadata_value")
     private Map<String, String> metadata = new HashMap<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "notification_tags",
             joinColumns = @JoinColumn(name = "notification_id")

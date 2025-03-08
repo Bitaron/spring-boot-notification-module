@@ -33,7 +33,7 @@ public class NotificationMessage extends BaseEntity {
 
     @ElementCollection
     @CollectionTable(
-            name = "template_data",
+            name = "notification_template_data",
             joinColumns = @JoinColumn(name = "message_id")
     )
     @MapKeyColumn(name = "data_key")

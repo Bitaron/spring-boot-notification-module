@@ -45,10 +45,9 @@ public class SmsDeliveryService implements DeliveryService {
             Map<String, String> bulkSmsData = new HashMap<>();
             for (NotificationRecipient recipient : notification.getRecipients()) {
                 // Use accessor methods
-                String content = sanitizeContent(
-                        notificationMessageResolver
-                                .resolveMessage(recipient.getMessage(), getChannel()).getContent());
-                String phoneNumber = sanitizePhoneNumber(recipient.getAddress().getOrDefault(getChannel(), ""));
+                String content = notificationMessageResolver
+                                .resolveMessage(recipient.getMessage(), getChannel()).getContent();
+                String phoneNumber =recipient.getAddress().getOrDefault(getChannel(), "");
                 if (!phoneNumber.isEmpty()) {
                     bulkSmsData.put(phoneNumber, content);
                 }
