@@ -49,8 +49,7 @@ public class Template {
     /**
      * The actual template content.
      */
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     /**

@@ -115,15 +115,14 @@ public class NotificationBuilder {
 
     // Template based builders
     public NotificationBuilder forRecipientWithTemplate(String recipientId,
+                                                        Map<NotificationChannel, String> address,
                                                         String templateName,
-                                                        Map<String, Object> templateData,
-                                                        NotificationPriority priority) {
-        Recipient recipient = new Recipient.Builder(recipientId)
+                                                        Map<String, Object> templateData) {
+        Recipient recipient = new Recipient.Builder(recipientId,address)
                 .setMessage(RecipientMessage.withTemplate(templateName, templateData, priority))
                 .build();
         this.recipients.clear();
         this.recipients.add(recipient);
-        this.priority = priority;
         return this;
     }
 

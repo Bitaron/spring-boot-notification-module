@@ -1,8 +1,10 @@
 package com.notification.domain.notification;
 
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,16 +30,11 @@ public class NotificationMessage extends BaseEntity {
     @Column(name = "is_html")
     private Boolean isHtml;
 
-    @Column(name = "attachment_url" )
+    @Column(name = "attachment_url")
     private String attachmentUrl;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "notification_template_data",
-            joinColumns = @JoinColumn(name = "message_id")
-    )
-    @MapKeyColumn(name = "data_key")
-    @Column(name = "data_value")
+    @Type(JsonBinaryType.class)
+    @Column(name = "template_data", columnDefinition = "jsonb")
     private Map<String, Object> templateData = new HashMap<>();
 
     // Getters and Setters

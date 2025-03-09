@@ -82,6 +82,21 @@ public class NotificationService {
     }
 
     @Transactional
+    public String sendSms(String to, String templateCode, Map<String, Object> templateData) {
+        Map<NotificationChannel, String> address = new HashMap<>();
+        address.put(NotificationChannel.SMS, to);
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.INFO)
+                .addChannel(NotificationChannel.SMS)
+                .setPriority(NotificationPriority.NORMAL)
+                .forRecipientWithTemplate(to,address,templateCode, templateData)
+                .build();
+
+        return sendNotification(request);
+    }
+
+
+    @Transactional
     public String sendUrgentAlert(String to, String subject, String content) {
         NotificationRequest request = NotificationRequest.builder()
                 .setType(NotificationType.ALERT)

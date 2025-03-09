@@ -84,7 +84,7 @@ public class NotificationMessageResolver {
             if (defaultTemplate.isPresent()) {
            //     logTemplateFound("default", notification.getTemplateName(), channel);
                 String content = processTemplate(
-                        channelTemplate.get().getContent(),
+                        defaultTemplate.get().getContent(),
                         notification.getTemplateData()
                 );
                 return new NotificationContent(content, defaultTemplate.get().isHtmlEnabled());
@@ -111,8 +111,8 @@ public class NotificationMessageResolver {
 
     private String processTemplate(String templateContent, Map<String, Object> data) {
         // Add common data
-        data.put("timestamp", userContext.getCurrentTimestamp());
-        data.put("currentUser", userContext.getCurrentUser());
+       /* data.put("timestamp", userContext.getCurrentTimestamp());
+        data.put("currentUser", userContext.getCurrentUser());*/
 
         return templateResolver.processTemplate(templateContent, data);
     }
