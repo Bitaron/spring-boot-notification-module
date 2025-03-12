@@ -1,29 +1,27 @@
 package com.notification.service.builder;
 
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.Set;
+
+@Data
+@Builder
 public class EmailMessage {
     private final String subject;
-    private final String htmlContent;
-    private final String plainTextContent;
+    private final boolean isHtml;
+    private final String rawMessage;
+    private final Set<String> attachmentUrls;
 
-    private EmailMessage(String subject, String htmlContent, String plainTextContent) {
+    private EmailMessage(String subject, boolean isHtml, String rawMessage, Set<String> attachmentUrls) {
         this.subject = subject;
-        this.htmlContent = htmlContent;
-        this.plainTextContent = plainTextContent;
+        this.isHtml = isHtml;
+        this.rawMessage = rawMessage;
+        this.attachmentUrls = attachmentUrls;
     }
 
-    public String getSubject() {
-        return subject;
-    }
 
-    public String getHtmlContent() {
-        return htmlContent;
-    }
-
-    public String getPlainTextContent() {
-        return plainTextContent;
-    }
-
-    public static class Builder {
+    /*public static class Builder {
         private String subject;
         private String htmlContent;
         private String plainTextContent;
@@ -53,5 +51,5 @@ public class EmailMessage {
             }
             return new EmailMessage(subject, htmlContent, plainTextContent);
         }
-    }
+    }*/
 }

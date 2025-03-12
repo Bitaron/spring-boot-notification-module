@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,18 +54,6 @@ public class NotificationService {
         return request.getNotificationId();
     }
 
-    // Convenient methods for common notification scenarios
-    @Transactional
-    public String sendEmail(String to, String subject, String content) {
-        NotificationRequest request = NotificationRequest.builder()
-                .setType(NotificationType.INFO)
-                .addChannel(NotificationChannel.EMAIL)
-                .setSender("system@example.com")
-                .forRecipientWithEmail(to, subject, content, content, NotificationPriority.NORMAL)
-                .build();
-
-        return sendNotification(request);
-    }
 
     @Transactional
     public String sendSms(String to, String content) {
@@ -89,7 +77,37 @@ public class NotificationService {
                 .setType(NotificationType.INFO)
                 .addChannel(NotificationChannel.SMS)
                 .setPriority(NotificationPriority.NORMAL)
-                .forRecipientWithTemplate(to,address,templateCode, templateData)
+                .forRecipientWithTemplate(to, address, templateCode, templateData)
+                .build();
+
+        return sendNotification(request);
+    }
+
+    @Transactional
+    public String sendWebNotification(String from, String to, String content) {
+        Map<NotificationChannel, String> address = new HashMap<>();
+        address.put(NotificationChannel.WEB, to);
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.INFO)
+                .addChannel(NotificationChannel.WEB)
+                .setPriority(NotificationPriority.NORMAL)
+                .setSender(from)
+                .forRecipientWithRawMessage(to, address, content)
+                .build();
+
+        return sendNotification(request);
+    }
+
+    @Transactional
+    public String sendWebNotification(String from, String to, String template, Map<String, Object> templateData) {
+        Map<NotificationChannel, String> address = new HashMap<>();
+        address.put(NotificationChannel.WEB, to);
+        NotificationRequest request = NotificationRequest.builder()
+                .setType(NotificationType.INFO)
+                .addChannel(NotificationChannel.WEB)
+                .setPriority(NotificationPriority.NORMAL)
+                .setSender(from)
+                .forRecipientWithTemplate(to, address, template, templateData)
                 .build();
 
         return sendNotification(request);
@@ -97,17 +115,20 @@ public class NotificationService {
 
 
     @Transactional
-    public String sendUrgentAlert(String to, String subject, String content) {
+    public String sendEmail(String to, String subject, String content, boolean isHtml, Set<String> attachmentUrls) {
+        Map<NotificationChannel, String> address = new HashMap<>();
+        address.put(NotificationChannel.EMAIL, to);
         NotificationRequest request = NotificationRequest.builder()
-                .setType(NotificationType.ALERT)
+                .setType(NotificationType.INFO)
                 .addChannel(NotificationChannel.EMAIL)
-                .addChannel(NotificationChannel.SMS)
-                .setSender("alerts@example.com")
-                .forRecipientWithEmail(to, subject, content, content, NotificationPriority.URGENT)
+                .setPriority(NotificationPriority.NORMAL)
+                .forRecipientWithEmail(to, address, subject, content, isHtml, attachmentUrls)
                 .build();
 
         return sendNotification(request);
     }
+
+/*
 
     @Transactional
     public String sendBulkEmail(List<String> recipients, String subject, String content) {
@@ -120,6 +141,7 @@ public class NotificationService {
 
         return sendNotification(request);
     }
+*/
 
     @Async
     protected CompletableFuture<Void> processNotificationAsync(NotificationRequest request) {
@@ -132,7 +154,6 @@ public class NotificationService {
             }
         });
     }
-
 
 
     @Transactional
@@ -210,8 +231,9 @@ public class NotificationService {
         } else if (message.isEmail()) {
             EmailMessage emailMessage = message.getEmailMessage();
             entity.setSubject(emailMessage.getSubject());
-            entity.setIsHtml(true);
-            //  entity.setPlainTextContent(emailMessage.getPlainTextContent());
+            entity.setRawMessage(emailMessage.getRawMessage());
+            entity.setIsHtml(emailMessage.isHtml());
+            entity.setAttachmentUrls(emailMessage.getAttachmentUrls());
         } else {
             entity.setRawMessage(message.getRawMessage());
         }

@@ -55,36 +55,38 @@ public class NotificationBuilder {
 
     // Email specific builders
     public NotificationBuilder forRecipientWithEmail(String recipientId,
+                                                     Map<NotificationChannel, String> address,
                                                      String subject,
-                                                     String htmlContent,
-                                                     String plainTextContent,
-                                                     NotificationPriority priority) {
-        EmailMessage emailMessage = new EmailMessage.Builder()
-                .setSubject(subject)
-                .setHtmlContent(htmlContent)
-                .setPlainTextContent(plainTextContent)
+                                                     String content,
+                                                     boolean isHtml,
+                                                     Set<String> attachmentUrls) {
+        EmailMessage emailMessage = EmailMessage.builder()
+                .subject(subject)
+                .isHtml(isHtml)
+                .rawMessage(content)
+                .attachmentUrls(attachmentUrls)
                 .build();
 
-        Recipient recipient = new Recipient.Builder(recipientId)
+        Recipient recipient = new Recipient.Builder(recipientId, address)
                 .setMessage(RecipientMessage.withEmail(emailMessage, priority))
                 .build();
 
         this.recipients.clear();
         this.recipients.add(recipient);
-        this.priority = priority;
         return this;
     }
 
     public NotificationBuilder forGroupWithEmail(List<String> recipientIds,
                                                  String subject,
-                                                 String htmlContent,
+                                                 boolean isHtml,
                                                  String plainTextContent,
                                                  NotificationPriority priority) {
-        EmailMessage emailMessage = new EmailMessage.Builder()
-                .setSubject(subject)
-                .setHtmlContent(htmlContent)
-                .setPlainTextContent(plainTextContent)
+        EmailMessage emailMessage = EmailMessage.builder()
+                .subject(subject)
+                .isHtml(isHtml)
+                .rawMessage(plainTextContent)
                 .build();
+
 
         this.recipients.clear();
         this.defaultMessage = RecipientMessage.withEmail(emailMessage, priority);
@@ -98,13 +100,13 @@ public class NotificationBuilder {
 
     public NotificationBuilder addRecipientWithCustomEmail(String recipientId,
                                                            String subject,
-                                                           String htmlContent,
+                                                           boolean isHtml,
                                                            String plainTextContent,
                                                            NotificationPriority priority) {
-        EmailMessage emailMessage = new EmailMessage.Builder()
-                .setSubject(subject)
-                .setHtmlContent(htmlContent)
-                .setPlainTextContent(plainTextContent)
+        EmailMessage emailMessage = EmailMessage.builder()
+                .subject(subject)
+                .isHtml(isHtml)
+                .rawMessage(plainTextContent)
                 .build();
 
         this.recipients.add(new Recipient.Builder(recipientId)
@@ -118,7 +120,7 @@ public class NotificationBuilder {
                                                         Map<NotificationChannel, String> address,
                                                         String templateName,
                                                         Map<String, Object> templateData) {
-        Recipient recipient = new Recipient.Builder(recipientId,address)
+        Recipient recipient = new Recipient.Builder(recipientId, address)
                 .setMessage(RecipientMessage.withTemplate(templateName, templateData, priority))
                 .build();
         this.recipients.clear();

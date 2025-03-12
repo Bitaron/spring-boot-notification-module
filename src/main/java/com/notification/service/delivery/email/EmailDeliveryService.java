@@ -16,6 +16,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Service for delivering notifications via email.
@@ -57,16 +60,18 @@ public class EmailDeliveryService implements DeliveryService {
                     String content = notificationContent.getContent();
                     boolean isHtml = notificationContent.getIsHtml();
 
-                    String attachmentUrl = notificationMessage.getAttachmentUrl();
-                    File attachment = null;
+                    Set<String> attachmentUrls = notificationMessage.getAttachmentUrls();
+                    List<File> attachments = new ArrayList<>();
 
-                    if (attachmentUrl != null && !attachmentUrl.isEmpty()) {
-                        attachment = new File(attachmentUrl);
+                    if (attachmentUrls != null && !attachmentUrls.isEmpty()) {
+                        for (String attachmentUrl : attachmentUrls) {
+                            attachments.add(new File(attachmentUrl));
+                        }
                     }
 
                     log.info("Sending email to {} with subject: {}", notificationRecipient.getRecipientId(), subject);
 
-                    sendEmail(fromAddress, recipient, subject, content, isHtml, attachment);
+                    sendEmail(fromAddress, recipient, subject, content, isHtml, attachments);
                 }
             }
 
@@ -75,7 +80,7 @@ public class EmailDeliveryService implements DeliveryService {
         }
     }
 
-    private void sendEmail(String from, String to, String subject, String content, boolean isHtml, File attachment)
+    private void sendEmail(String from, String to, String subject, String content, boolean isHtml, List<File> attachments)
             throws Exception {
 
         if (from == null || from.isEmpty()) {
@@ -83,15 +88,18 @@ public class EmailDeliveryService implements DeliveryService {
         }
 
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, attachment != null);
+        MimeMessageHelper helper = new MimeMessageHelper(message, !attachments.isEmpty());
 
         helper.setFrom(from);
         helper.setTo(to);
         helper.setSubject(subject);
+
         helper.setText(content, isHtml);
 
-        if (attachment != null) {
-            helper.addAttachment(attachment.getName(), attachment);
+        if (!attachments.isEmpty()) {
+            for (File attachment : attachments) {
+                helper.addAttachment(attachment.getName(), attachment);
+            }
         }
 
         mailSender.send(message);
@@ -99,8 +107,6 @@ public class EmailDeliveryService implements DeliveryService {
 
     @Override
     public boolean isSupported() {
-        return emailProperties != null &&
-                emailProperties.getFromAddress() != null &&
-                !emailProperties.getFromAddress().isEmpty();
+        return emailProperties.isEnabled();
     }
 } 

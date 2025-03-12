@@ -7,7 +7,9 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -30,8 +32,13 @@ public class NotificationMessage extends BaseEntity {
     @Column(name = "is_html")
     private Boolean isHtml;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "notification_messages_attachment_urls",
+            joinColumns = @JoinColumn(name = "notification_messages_id")
+    )
     @Column(name = "attachment_url")
-    private String attachmentUrl;
+    private Set<String> attachmentUrls = new HashSet<>();
 
     @Type(JsonBinaryType.class)
     @Column(name = "template_data", columnDefinition = "jsonb")
